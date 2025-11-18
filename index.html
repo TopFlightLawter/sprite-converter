@@ -545,86 +545,388 @@
             });
         });
 
-        // Template data
+        // Template drawing functions
+        function drawCharacterBase(ctx, w, h) {
+            // Simple humanoid base - front facing
+            ctx.fillStyle = '#888888';
+
+            // Head
+            const headSize = Math.floor(w / 4);
+            const headX = Math.floor(w / 2 - headSize / 2);
+            const headY = Math.floor(h / 6);
+            ctx.fillRect(headX, headY, headSize, headSize);
+
+            // Body
+            const bodyW = Math.floor(w / 3);
+            const bodyH = Math.floor(h / 3);
+            const bodyX = Math.floor(w / 2 - bodyW / 2);
+            const bodyY = headY + headSize;
+            ctx.fillRect(bodyX, bodyY, bodyW, bodyH);
+
+            // Arms
+            const armW = Math.floor(w / 8);
+            const armH = Math.floor(h / 3);
+            ctx.fillRect(bodyX - armW, bodyY, armW, armH); // Left arm
+            ctx.fillRect(bodyX + bodyW, bodyY, armW, armH); // Right arm
+
+            // Legs
+            const legW = Math.floor(w / 6);
+            const legH = Math.floor(h / 3);
+            const legY = bodyY + bodyH;
+            ctx.fillRect(bodyX, legY, legW, legH); // Left leg
+            ctx.fillRect(bodyX + bodyW - legW, legY, legW, legH); // Right leg
+        }
+
+        function drawCharacterSide(ctx, w, h) {
+            // Side view character
+            ctx.fillStyle = '#888888';
+
+            // Head (circle-ish)
+            const headSize = Math.floor(w / 3.5);
+            const headX = Math.floor(w / 2);
+            const headY = Math.floor(h / 6);
+            ctx.fillRect(headX, headY, headSize, headSize);
+
+            // Body
+            const bodyW = Math.floor(w / 3);
+            const bodyH = Math.floor(h / 3);
+            const bodyX = Math.floor(w / 2 - bodyW / 4);
+            const bodyY = headY + headSize;
+            ctx.fillRect(bodyX, bodyY, bodyW, bodyH);
+
+            // Arm (one visible)
+            const armW = Math.floor(w / 6);
+            const armH = Math.floor(h / 2.5);
+            ctx.fillRect(bodyX + bodyW / 2, bodyY, armW, armH);
+
+            // Legs
+            const legW = Math.floor(w / 7);
+            const legH = Math.floor(h / 3);
+            const legY = bodyY + bodyH;
+            ctx.fillRect(bodyX + bodyW / 4, legY, legW, legH);
+            ctx.fillRect(bodyX + bodyW / 2, legY, legW, legH);
+        }
+
+        function drawChibiBase(ctx, w, h) {
+            // Cute chibi character (big head, small body)
+            ctx.fillStyle = '#888888';
+
+            // Big head
+            const headSize = Math.floor(w / 2);
+            const headX = Math.floor(w / 2 - headSize / 2);
+            const headY = Math.floor(h / 8);
+            ctx.fillRect(headX, headY, headSize, headSize);
+
+            // Small body
+            const bodyW = Math.floor(w / 2.5);
+            const bodyH = Math.floor(h / 4);
+            const bodyX = Math.floor(w / 2 - bodyW / 2);
+            const bodyY = headY + headSize;
+            ctx.fillRect(bodyX, bodyY, bodyW, bodyH);
+
+            // Arms
+            const armW = Math.floor(w / 10);
+            const armH = Math.floor(h / 5);
+            ctx.fillRect(bodyX - armW, bodyY, armW, armH);
+            ctx.fillRect(bodyX + bodyW, bodyY, armW, armH);
+
+            // Legs
+            const legW = Math.floor(w / 7);
+            const legH = Math.floor(h / 4);
+            const legY = bodyY + bodyH;
+            ctx.fillRect(bodyX + bodyW / 4 - legW / 2, legY, legW, legH);
+            ctx.fillRect(bodyX + (bodyW * 3 / 4) - legW / 2, legY, legW, legH);
+        }
+
+        function drawCoin(ctx, w, h) {
+            ctx.fillStyle = '#888888';
+            ctx.strokeStyle = '#CCCCCC';
+            ctx.lineWidth = 1;
+
+            // Circular coin
+            const radius = Math.min(w, h) / 3;
+            const centerX = w / 2;
+            const centerY = h / 2;
+
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+
+            // Inner circle
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius * 0.7, 0, Math.PI * 2);
+            ctx.stroke();
+        }
+
+        function drawHeart(ctx, w, h) {
+            ctx.fillStyle = '#888888';
+
+            // Simple pixelated heart
+            const size = Math.min(w, h);
+            const pixel = Math.floor(size / 8);
+            const startX = (w - pixel * 7) / 2;
+            const startY = (h - pixel * 6) / 2;
+
+            // Row 1
+            ctx.fillRect(startX + pixel, startY, pixel, pixel);
+            ctx.fillRect(startX + pixel * 2, startY, pixel, pixel);
+            ctx.fillRect(startX + pixel * 4, startY, pixel, pixel);
+            ctx.fillRect(startX + pixel * 5, startY, pixel, pixel);
+
+            // Row 2
+            ctx.fillRect(startX, startY + pixel, pixel * 7, pixel);
+
+            // Row 3
+            ctx.fillRect(startX, startY + pixel * 2, pixel * 7, pixel);
+
+            // Row 4
+            ctx.fillRect(startX + pixel, startY + pixel * 3, pixel * 5, pixel);
+
+            // Row 5
+            ctx.fillRect(startX + pixel * 2, startY + pixel * 4, pixel * 3, pixel);
+
+            // Row 6
+            ctx.fillRect(startX + pixel * 3, startY + pixel * 5, pixel, pixel);
+        }
+
+        function drawSword(ctx, w, h) {
+            ctx.fillStyle = '#888888';
+            ctx.strokeStyle = '#CCCCCC';
+            ctx.lineWidth = 1;
+
+            // Blade
+            const bladeW = Math.floor(w / 6);
+            const bladeH = Math.floor(h * 0.6);
+            const bladeX = Math.floor(w / 2 - bladeW / 2);
+            const bladeY = Math.floor(h * 0.1);
+            ctx.fillRect(bladeX, bladeY, bladeW, bladeH);
+
+            // Guard
+            const guardW = Math.floor(w / 2);
+            const guardH = Math.floor(h / 12);
+            const guardX = Math.floor(w / 2 - guardW / 2);
+            const guardY = bladeY + bladeH;
+            ctx.fillRect(guardX, guardY, guardW, guardH);
+
+            // Handle
+            const handleW = Math.floor(w / 8);
+            const handleH = Math.floor(h / 5);
+            const handleX = Math.floor(w / 2 - handleW / 2);
+            const handleY = guardY + guardH;
+            ctx.fillRect(handleX, handleY, handleW, handleH);
+
+            // Pommel
+            const pommelSize = Math.floor(w / 5);
+            const pommelX = Math.floor(w / 2 - pommelSize / 2);
+            const pommelY = handleY + handleH;
+            ctx.fillRect(pommelX, pommelY, pommelSize, pommelSize);
+        }
+
+        function drawPotion(ctx, w, h) {
+            ctx.fillStyle = '#888888';
+            ctx.strokeStyle = '#CCCCCC';
+            ctx.lineWidth = 1;
+
+            // Cork/stopper
+            const corkW = Math.floor(w / 4);
+            const corkH = Math.floor(h / 8);
+            const corkX = Math.floor(w / 2 - corkW / 2);
+            const corkY = Math.floor(h / 8);
+            ctx.fillRect(corkX, corkY, corkW, corkH);
+
+            // Neck
+            const neckW = Math.floor(w / 3);
+            const neckH = Math.floor(h / 6);
+            const neckX = Math.floor(w / 2 - neckW / 2);
+            const neckY = corkY + corkH;
+            ctx.fillRect(neckX, neckY, neckW, neckH);
+
+            // Body (bottle)
+            const bodyW = Math.floor(w / 1.5);
+            const bodyH = Math.floor(h / 2);
+            const bodyX = Math.floor(w / 2 - bodyW / 2);
+            const bodyY = neckY + neckH;
+            ctx.fillRect(bodyX, bodyY, bodyW, bodyH);
+
+            // Liquid inside (lighter)
+            ctx.fillStyle = '#AAAAAA';
+            const liquidH = Math.floor(bodyH * 0.7);
+            ctx.fillRect(bodyX + 2, bodyY + bodyH - liquidH, bodyW - 4, liquidH - 2);
+        }
+
+        function drawChest(ctx, w, h) {
+            ctx.fillStyle = '#888888';
+            ctx.strokeStyle = '#CCCCCC';
+            ctx.lineWidth = 1;
+
+            // Main chest box
+            const chestW = Math.floor(w * 0.7);
+            const chestH = Math.floor(h * 0.5);
+            const chestX = Math.floor(w / 2 - chestW / 2);
+            const chestY = Math.floor(h / 2.5);
+            ctx.fillRect(chestX, chestY, chestW, chestH);
+            ctx.strokeRect(chestX, chestY, chestW, chestH);
+
+            // Lid
+            const lidH = Math.floor(h * 0.3);
+            ctx.fillRect(chestX, chestY - lidH, chestW, lidH);
+            ctx.strokeRect(chestX, chestY - lidH, chestW, lidH);
+
+            // Lock
+            const lockSize = Math.floor(Math.min(w, h) / 6);
+            const lockX = Math.floor(w / 2 - lockSize / 2);
+            const lockY = chestY + chestH / 3;
+            ctx.fillStyle = '#CCCCCC';
+            ctx.fillRect(lockX, lockY, lockSize, lockSize);
+        }
+
+        function drawKey(ctx, w, h) {
+            ctx.fillStyle = '#888888';
+
+            // Head (circle)
+            const headSize = Math.floor(h / 3);
+            const headX = Math.floor(w / 4);
+            const headY = Math.floor(h / 2 - headSize / 2);
+            ctx.fillRect(headX, headY, headSize, headSize);
+
+            // Hole in head
+            ctx.fillStyle = '#1a1a1a';
+            const holeSize = Math.floor(headSize / 3);
+            const holeX = headX + headSize / 2 - holeSize / 2;
+            const holeY = headY + headSize / 2 - holeSize / 2;
+            ctx.fillRect(holeX, holeY, holeSize, holeSize);
+
+            // Shaft
+            ctx.fillStyle = '#888888';
+            const shaftW = Math.floor(w / 2);
+            const shaftH = Math.floor(h / 8);
+            const shaftX = headX + headSize;
+            const shaftY = Math.floor(h / 2 - shaftH / 2);
+            ctx.fillRect(shaftX, shaftY, shaftW, shaftH);
+
+            // Teeth
+            const toothW = Math.floor(w / 12);
+            const toothH = Math.floor(h / 6);
+            ctx.fillRect(shaftX + shaftW - toothW * 3, shaftY + shaftH, toothW, toothH);
+            ctx.fillRect(shaftX + shaftW - toothW, shaftY + shaftH, toothW, toothH);
+        }
+
+        function drawButton(ctx, w, h) {
+            ctx.fillStyle = '#888888';
+            ctx.strokeStyle = '#CCCCCC';
+            ctx.lineWidth = 2;
+
+            // Rounded rectangle button
+            const margin = 4;
+            const cornerSize = 6;
+
+            ctx.fillRect(margin + cornerSize, margin, w - margin * 2 - cornerSize * 2, h - margin * 2);
+            ctx.fillRect(margin, margin + cornerSize, w - margin * 2, h - margin * 2 - cornerSize * 2);
+
+            // Corners
+            ctx.fillRect(margin, margin, cornerSize, cornerSize);
+            ctx.fillRect(w - margin - cornerSize, margin, cornerSize, cornerSize);
+            ctx.fillRect(margin, h - margin - cornerSize, cornerSize, cornerSize);
+            ctx.fillRect(w - margin - cornerSize, h - margin - cornerSize, cornerSize, cornerSize);
+
+            ctx.strokeRect(margin, margin, w - margin * 2, h - margin * 2);
+        }
+
+        // Template data with drawing functions
         const templates = [
-            { name: 'Character 32x32', width: 32, height: 32, type: 'character' },
-            { name: 'Character 64x64', width: 64, height: 64, type: 'character' },
-            { name: 'Icon 16x16', width: 16, height: 16, type: 'icon' },
-            { name: 'Item 24x24', width: 24, height: 24, type: 'item' },
-            { name: 'Full Screen 480x320', width: 480, height: 320, type: 'background' },
-            { name: 'Button 100x40', width: 100, height: 40, type: 'ui' }
+            // Characters
+            { name: 'Character Front', width: 32, height: 32, category: 'Characters', draw: drawCharacterBase },
+            { name: 'Character Side', width: 32, height: 32, category: 'Characters', draw: drawCharacterSide },
+            { name: 'Chibi Character', width: 32, height: 32, category: 'Characters', draw: drawChibiBase },
+            { name: 'Character Front 64x64', width: 64, height: 64, category: 'Characters', draw: drawCharacterBase },
+
+            // Items
+            { name: 'Coin', width: 24, height: 24, category: 'Items', draw: drawCoin },
+            { name: 'Heart', width: 24, height: 24, category: 'Items', draw: drawHeart },
+            { name: 'Sword', width: 24, height: 32, category: 'Items', draw: drawSword },
+            { name: 'Potion Bottle', width: 24, height: 32, category: 'Items', draw: drawPotion },
+            { name: 'Treasure Chest', width: 32, height: 32, category: 'Items', draw: drawChest },
+            { name: 'Key', width: 32, height: 24, category: 'Items', draw: drawKey },
+
+            // UI Elements
+            { name: 'Button Small', width: 64, height: 32, category: 'UI Elements', draw: drawButton },
+            { name: 'Button Medium', width: 100, height: 40, category: 'UI Elements', draw: drawButton },
+            { name: 'Icon 16x16', width: 16, height: 16, category: 'UI Elements', draw: drawHeart },
+
+            // Special
+            { name: 'Full Screen', width: 480, height: 320, category: 'Backgrounds', draw: (ctx, w, h) => {
+                ctx.fillStyle = '#888888';
+                ctx.strokeStyle = '#CCCCCC';
+                ctx.lineWidth = 4;
+                ctx.strokeRect(2, 2, w - 4, h - 4);
+                ctx.fillStyle = '#AAAAAA';
+                ctx.font = '24px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('480x320', w / 2, h / 2);
+            }}
         ];
 
         // Initialize templates
         function initTemplates() {
             const grid = document.getElementById('templateGrid');
+
+            // Group templates by category
+            const categories = {};
             templates.forEach(template => {
-                const item = document.createElement('div');
-                item.className = 'template-item';
-
-                const previewDiv = document.createElement('div');
-                previewDiv.className = 'template-preview';
-
-                const canvas = document.createElement('canvas');
-                canvas.width = template.width;
-                canvas.height = template.height;
-                const ctx = canvas.getContext('2d');
-
-                // Draw template with visible guides
-                ctx.fillStyle = '#1a1a1a';
-                ctx.fillRect(0, 0, template.width, template.height);
-
-                // Draw border
-                ctx.strokeStyle = '#00D9FF';
-                ctx.lineWidth = Math.max(1, Math.min(template.width, template.height) / 50);
-                ctx.strokeRect(0, 0, template.width, template.height);
-
-                // Draw center crosshair
-                ctx.strokeStyle = '#39FF14';
-                ctx.lineWidth = Math.max(1, Math.min(template.width, template.height) / 100);
-                ctx.beginPath();
-                ctx.moveTo(template.width / 2, 0);
-                ctx.lineTo(template.width / 2, template.height);
-                ctx.moveTo(0, template.height / 2);
-                ctx.lineTo(template.width, template.height / 2);
-                ctx.stroke();
-
-                // Draw corner markers
-                const markerSize = Math.max(3, Math.min(template.width, template.height) / 20);
-                ctx.fillStyle = '#FFFF00';
-                ctx.fillRect(0, 0, markerSize, markerSize);
-                ctx.fillRect(template.width - markerSize, 0, markerSize, markerSize);
-                ctx.fillRect(0, template.height - markerSize, markerSize, markerSize);
-                ctx.fillRect(template.width - markerSize, template.height - markerSize, markerSize, markerSize);
-
-                // Add text if large enough
-                if (template.width >= 64) {
-                    ctx.fillStyle = '#00D9FF';
-                    ctx.font = `${Math.floor(template.height / 10)}px Arial`;
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'middle';
-                    ctx.fillText(`${template.width}x${template.height}`, template.width / 2, template.height / 2);
+                if (!categories[template.category]) {
+                    categories[template.category] = [];
                 }
+                categories[template.category].push(template);
+            });
 
-                previewDiv.appendChild(canvas);
+            // Add category headers and templates
+            Object.keys(categories).forEach(category => {
+                const categoryHeader = document.createElement('div');
+                categoryHeader.style.gridColumn = '1 / -1';
+                categoryHeader.style.marginTop = '20px';
+                categoryHeader.innerHTML = `<h3 style="color: #39FF14; font-size: 1.2em; margin-bottom: 10px;">${category}</h3>`;
+                grid.appendChild(categoryHeader);
 
-                const title = document.createElement('h3');
-                title.textContent = template.name;
+                categories[category].forEach(template => {
+                    const item = document.createElement('div');
+                    item.className = 'template-item';
 
-                const desc = document.createElement('p');
-                desc.textContent = `${template.width}×${template.height} px`;
+                    const previewDiv = document.createElement('div');
+                    previewDiv.className = 'template-preview';
 
-                const downloadBtn = document.createElement('button');
-                downloadBtn.className = 'btn btn-primary';
-                downloadBtn.textContent = 'Download';
-                downloadBtn.style.width = '100%';
-                downloadBtn.onclick = () => downloadTemplate(canvas, template.name);
+                    const canvas = document.createElement('canvas');
+                    canvas.width = template.width;
+                    canvas.height = template.height;
+                    const ctx = canvas.getContext('2d');
 
-                item.appendChild(previewDiv);
-                item.appendChild(title);
-                item.appendChild(desc);
-                item.appendChild(downloadBtn);
-                grid.appendChild(item);
+                    // Clear background
+                    ctx.fillStyle = '#1a1a1a';
+                    ctx.fillRect(0, 0, template.width, template.height);
+
+                    // Draw the actual template artwork
+                    template.draw(ctx, template.width, template.height);
+
+                    previewDiv.appendChild(canvas);
+
+                    const title = document.createElement('h3');
+                    title.textContent = template.name;
+
+                    const desc = document.createElement('p');
+                    desc.textContent = `${template.width}×${template.height} px`;
+
+                    const downloadBtn = document.createElement('button');
+                    downloadBtn.className = 'btn btn-primary';
+                    downloadBtn.textContent = 'Download';
+                    downloadBtn.style.width = '100%';
+                    downloadBtn.onclick = () => downloadTemplate(canvas, template.name);
+
+                    item.appendChild(previewDiv);
+                    item.appendChild(title);
+                    item.appendChild(desc);
+                    item.appendChild(downloadBtn);
+                    grid.appendChild(item);
+                });
             });
         }
 
