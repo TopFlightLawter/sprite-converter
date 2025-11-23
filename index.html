@@ -1383,6 +1383,158 @@
             ctx.fillRect(p*16, p*28, p*4, p*1);
         }
 
+        // ===== GAMEDUDE PLAYER SHIP (From Asteroid Blaster) =====
+
+        function drawGameDudePlayerShip(ctx, w, h) {
+            // Convert RGB565 colors to RGB
+            const COLOR_PRIMARY = '#00FCFF';   // 0x07ff - Cyan
+            const COLOR_DANGER = '#F80000';     // 0xf800 - Red
+            const COLOR_SUCCESS = '#00FC00';    // 0x07e0 - Green
+            const COLOR_TEXT = '#E0E4E0';       // 0xe73c - Light gray/yellow
+            const COLOR_ACCENT = '#F8FC20';     // 0xfbe4 - Yellow
+            const DARK_TEAL = '#303030';        // 0x3186 - Dark gray/teal
+            const DARK_PURPLE = '#606460';      // 0x632C - Gray/purple
+            const LIGHT_CYAN = '#78FC78';       // 0x7BEF - Light cyan
+            const DARK_BLUE = '#0000F8';        // 0x001F - Blue
+            const MED_BLUE = '#48C4F8';         // 0x4E3F - Light blue
+
+            // Scale to canvas size (original is 38x38 for a 14-pixel SHIP_SIZE)
+            const scale = Math.min(w / 38, h / 38);
+            const offsetX = (w - 38 * scale) / 2;
+            const offsetY = (h - 38 * scale) / 2;
+
+            // Transform coordinates
+            const s = (coord) => coord * scale;
+            const tx = (coord) => offsetX + coord * scale;
+            const ty = (coord) => offsetY + coord * scale;
+
+            // Center point (original: x = 18, y = 18)
+            const cx = 19;
+            const cy = 19;
+
+            ctx.save();
+
+            // Top engine pod (triangle + red glow)
+            ctx.fillStyle = DARK_TEAL;
+            ctx.beginPath();
+            ctx.moveTo(tx(cx - 8), ty(cy - 4));
+            ctx.lineTo(tx(cx + 2), ty(cy - 10));
+            ctx.lineTo(tx(cx + 4), ty(cy - 4));
+            ctx.fill();
+
+            ctx.strokeStyle = COLOR_PRIMARY;
+            ctx.lineWidth = s(1);
+            ctx.stroke();
+
+            ctx.fillStyle = COLOR_DANGER;
+            ctx.beginPath();
+            ctx.arc(tx(cx - 4), ty(cy - 7), s(2), 0, Math.PI * 2);
+            ctx.fill();
+
+            // Bottom engine pod (triangle + red glow)
+            ctx.fillStyle = DARK_TEAL;
+            ctx.beginPath();
+            ctx.moveTo(tx(cx - 8), ty(cy + 4));
+            ctx.lineTo(tx(cx + 2), ty(cy + 10));
+            ctx.lineTo(tx(cx + 4), ty(cy + 4));
+            ctx.fill();
+
+            ctx.strokeStyle = COLOR_PRIMARY;
+            ctx.stroke();
+
+            ctx.fillStyle = COLOR_DANGER;
+            ctx.beginPath();
+            ctx.arc(tx(cx - 4), ty(cy + 7), s(2), 0, Math.PI * 2);
+            ctx.fill();
+
+            // Top wing section
+            ctx.fillStyle = DARK_PURPLE;
+            ctx.fillRect(tx(cx - 10), ty(cy + 1), s(14), s(4));
+            ctx.strokeStyle = COLOR_PRIMARY;
+            ctx.strokeRect(tx(cx - 10), ty(cy + 1), s(14), s(4));
+
+            // Bottom wing section
+            ctx.fillStyle = DARK_PURPLE;
+            ctx.fillRect(tx(cx - 10), ty(cy - 5), s(14), s(4));
+            ctx.strokeStyle = COLOR_PRIMARY;
+            ctx.strokeRect(tx(cx - 10), ty(cy - 5), s(14), s(4));
+
+            // Main fuselage
+            ctx.fillStyle = COLOR_PRIMARY;
+            ctx.fillRect(tx(cx - 8), ty(cy - 3), s(16), s(6));
+            ctx.strokeStyle = COLOR_PRIMARY;
+            ctx.strokeRect(tx(cx - 8), ty(cy - 3), s(16), s(6));
+
+            // Fuselage highlights
+            ctx.strokeStyle = LIGHT_CYAN;
+            ctx.lineWidth = s(1);
+            ctx.beginPath();
+            ctx.moveTo(tx(cx - 6), ty(cy - 2));
+            ctx.lineTo(tx(cx + 6), ty(cy - 2));
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.moveTo(tx(cx - 6), ty(cy + 2));
+            ctx.lineTo(tx(cx + 6), ty(cy + 2));
+            ctx.stroke();
+
+            // Cockpit (blue circles with green center)
+            ctx.fillStyle = DARK_BLUE;
+            ctx.beginPath();
+            ctx.arc(tx(cx + 2), ty(cy), s(4), 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = MED_BLUE;
+            ctx.beginPath();
+            ctx.arc(tx(cx + 2), ty(cy - 1), s(3), 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.strokeStyle = COLOR_PRIMARY;
+            ctx.lineWidth = s(1);
+            ctx.beginPath();
+            ctx.arc(tx(cx + 2), ty(cy), s(4), 0, Math.PI * 2);
+            ctx.stroke();
+
+            // Cockpit green center light
+            ctx.fillStyle = COLOR_SUCCESS;
+            ctx.beginPath();
+            ctx.arc(tx(cx + 2), ty(cy), s(1), 0, Math.PI * 2);
+            ctx.fill();
+
+            // Nose cone (main triangle)
+            ctx.fillStyle = COLOR_PRIMARY;
+            ctx.beginPath();
+            ctx.moveTo(tx(cx + 8), ty(cy - 2));
+            ctx.lineTo(tx(cx + 16), ty(cy));
+            ctx.lineTo(tx(cx + 8), ty(cy + 2));
+            ctx.fill();
+
+            ctx.strokeStyle = COLOR_PRIMARY;
+            ctx.stroke();
+
+            // Nose accent line
+            ctx.strokeStyle = COLOR_ACCENT;
+            ctx.lineWidth = s(1);
+            ctx.beginPath();
+            ctx.moveTo(tx(cx + 10), ty(cy));
+            ctx.lineTo(tx(cx + 16), ty(cy));
+            ctx.stroke();
+
+            // Top detail panel
+            ctx.fillStyle = LIGHT_CYAN;
+            ctx.fillRect(tx(cx + 6), ty(cy - 4), s(4), s(2));
+            ctx.strokeStyle = COLOR_TEXT;
+            ctx.strokeRect(tx(cx + 6), ty(cy - 4), s(4), s(2));
+
+            // Bottom detail panel
+            ctx.fillStyle = LIGHT_CYAN;
+            ctx.fillRect(tx(cx + 6), ty(cy + 2), s(4), s(2));
+            ctx.strokeStyle = COLOR_TEXT;
+            ctx.strokeRect(tx(cx + 6), ty(cy + 2), s(4), s(2));
+
+            ctx.restore();
+        }
+
         // ===== FIGHTER SHIP TEMPLATES (Top-down, Galaga-style) =====
 
         // Simple Fighter - Basic Ship
@@ -1901,6 +2053,9 @@
 
         // Template data with drawing functions
         const templates = [
+            // GameDude Asteroid Blaster
+            { name: 'Player Ship (Asteroid Blaster)', width: 38, height: 38, category: 'GameDude Ships', draw: drawGameDudePlayerShip },
+
             // 8-bit Warriors
             { name: 'Knight (8-bit)', width: 16, height: 16, category: '8-bit Warriors', draw: draw8BitWarriorKnight },
             { name: 'Barbarian (8-bit)', width: 16, height: 16, category: '8-bit Warriors', draw: draw8BitWarriorBarbarian },
@@ -2403,7 +2558,62 @@
             }
         }
 
+        // Pre-load GameDude player ship into gallery on first visit
+        function preloadGameDudeShip() {
+            const gallery = JSON.parse(localStorage.getItem('spriteGallery') || '[]');
+
+            // Check if GameDude ship already exists
+            const gameDudeExists = gallery.some(sprite => sprite.name === 'GameDude_Player_Ship');
+
+            if (!gameDudeExists) {
+                // Create canvas and draw the ship
+                const canvas = document.createElement('canvas');
+                canvas.width = 38;
+                canvas.height = 38;
+                const ctx = canvas.getContext('2d');
+
+                // Clear background
+                ctx.fillStyle = '#1a1a1a';
+                ctx.fillRect(0, 0, 38, 38);
+
+                // Draw the GameDude ship
+                drawGameDudePlayerShip(ctx, 38, 38);
+
+                // Convert to RGB565 array
+                const imageData = ctx.getImageData(0, 0, 38, 38);
+                const rgb565Array = [];
+
+                for (let i = 0; i < imageData.data.length; i += 4) {
+                    const r = imageData.data[i];
+                    const g = imageData.data[i + 1];
+                    const b = imageData.data[i + 2];
+
+                    // Convert to RGB565
+                    const r5 = (r >> 3) & 0x1F;
+                    const g6 = (g >> 2) & 0x3F;
+                    const b5 = (b >> 3) & 0x1F;
+                    const rgb565 = (r5 << 11) | (g6 << 5) | b5;
+
+                    rgb565Array.push(rgb565);
+                }
+
+                // Add to gallery
+                gallery.unshift({
+                    name: 'GameDude_Player_Ship',
+                    width: 38,
+                    height: 38,
+                    data: rgb565Array,
+                    imageDataURL: canvas.toDataURL(),
+                    timestamp: Date.now()
+                });
+
+                localStorage.setItem('spriteGallery', JSON.stringify(gallery));
+                console.log('GameDude Player Ship pre-loaded into gallery!');
+            }
+        }
+
         // Initialize on load
+        preloadGameDudeShip();
         initTemplates();
     </script>
 </body>
