@@ -1,0 +1,26 @@
+{
+  "name": "ESP32 Sprite Converter",
+  "short_name": "SpriteConv",
+  "description": "Convert pixel art to RGB565 C arrays for ESP32 displays",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#00D9FF",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect fill='%23000' width='192' height='192'/%3E%3Cpath fill='%2300D9FF' d='M96 32L32 96l64 64 64-64z'/%3E%3Cpath fill='%2339FF14' d='M96 64L64 96l32 32 32-32z'/%3E%3C/svg%3E",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect fill='%23000' width='512' height='512'/%3E%3Cpath fill='%2300D9FF' d='M256 85L85 256l171 171 171-171z'/%3E%3Cpath fill='%2339FF14' d='M256 171L171 256l85 85 85-85z'/%3E%3C/svg%3E",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["utilities", "developer tools"],
+  "screenshots": []
+}

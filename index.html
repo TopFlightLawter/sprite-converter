@@ -1,0 +1,2410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#000000">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>ESP32 Sprite Converter</title>
+    <link rel="manifest" href="manifest.json">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #000000;
+            color: #ffffff;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #00D9FF 0%, #39FF14 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 20px rgba(0, 217, 255, 0.5);
+        }
+
+        header p {
+            font-size: 1.1em;
+            color: #888;
+        }
+
+        .card {
+            background: #111111;
+            border: 2px solid #00D9FF;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 0 20px rgba(0, 217, 255, 0.3);
+        }
+
+        .card h2 {
+            color: #00D9FF;
+            margin-bottom: 15px;
+            font-size: 1.5em;
+            text-shadow: 0 0 10px rgba(0, 217, 255, 0.5);
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #333;
+            flex-wrap: wrap;
+        }
+
+        .tab {
+            padding: 12px 24px;
+            background: none;
+            border: none;
+            font-size: 1em;
+            cursor: pointer;
+            color: #666;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .tab:hover {
+            color: #00D9FF;
+            text-shadow: 0 0 10px rgba(0, 217, 255, 0.5);
+        }
+
+        .tab.active {
+            color: #00D9FF;
+            border-bottom-color: #00D9FF;
+            text-shadow: 0 0 10px rgba(0, 217, 255, 0.5);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .upload-area {
+            border: 3px dashed #00D9FF;
+            border-radius: 8px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 20px;
+            background: rgba(0, 217, 255, 0.05);
+        }
+
+        .upload-area:hover {
+            background: rgba(0, 217, 255, 0.1);
+            border-color: #39FF14;
+            box-shadow: 0 0 20px rgba(0, 217, 255, 0.3);
+        }
+
+        .upload-area.dragover {
+            background: rgba(0, 217, 255, 0.15);
+            border-color: #39FF14;
+            transform: scale(1.02);
+            box-shadow: 0 0 30px rgba(57, 255, 20, 0.4);
+        }
+
+        .upload-area input[type="file"] {
+            display: none;
+        }
+
+        .upload-icon {
+            font-size: 3em;
+            margin-bottom: 10px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: 2px solid #00D9FF;
+            border-radius: 6px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+            background: transparent;
+            color: #00D9FF;
+        }
+
+        .btn-primary {
+            background: #00D9FF;
+            color: #000;
+            box-shadow: 0 0 15px rgba(0, 217, 255, 0.4);
+        }
+
+        .btn-primary:hover {
+            background: #00FFFF;
+            box-shadow: 0 0 25px rgba(0, 217, 255, 0.6);
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: #333;
+            color: #00D9FF;
+            border-color: #555;
+        }
+
+        .btn-secondary:hover {
+            background: #444;
+            border-color: #00D9FF;
+            box-shadow: 0 0 15px rgba(0, 217, 255, 0.3);
+        }
+
+        .btn-danger {
+            background: #FF0055;
+            color: #fff;
+            border-color: #FF0055;
+        }
+
+        .btn-danger:hover {
+            background: #FF3377;
+            box-shadow: 0 0 15px rgba(255, 0, 85, 0.4);
+        }
+
+        .btn-success {
+            background: #39FF14;
+            color: #000;
+            border-color: #39FF14;
+            box-shadow: 0 0 15px rgba(57, 255, 20, 0.4);
+        }
+
+        .btn-success:hover {
+            background: #55FF33;
+            box-shadow: 0 0 25px rgba(57, 255, 20, 0.6);
+        }
+
+        .template-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .template-item {
+            border: 2px solid #333;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: #0a0a0a;
+        }
+
+        .template-item:hover {
+            border-color: #00D9FF;
+            transform: translateY(-3px);
+            box-shadow: 0 0 20px rgba(0, 217, 255, 0.4);
+        }
+
+        .template-preview {
+            width: 100%;
+            aspect-ratio: 1;
+            background: #1a1a1a;
+            border: 2px solid #00D9FF;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .template-preview canvas {
+            max-width: 100%;
+            max-height: 100%;
+            image-rendering: pixelated;
+        }
+
+        .template-item h3 {
+            font-size: 0.9em;
+            color: #00D9FF;
+            margin-bottom: 5px;
+        }
+
+        .template-item p {
+            font-size: 0.8em;
+            color: #888;
+            margin-bottom: 10px;
+        }
+
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .gallery-item {
+            border: 2px solid #333;
+            border-radius: 8px;
+            padding: 15px;
+            background: #0a0a0a;
+            transition: all 0.3s;
+        }
+
+        .gallery-item:hover {
+            border-color: #00D9FF;
+            box-shadow: 0 0 20px rgba(0, 217, 255, 0.3);
+        }
+
+        .gallery-item canvas, .gallery-item img {
+            max-width: 100%;
+            image-rendering: pixelated;
+            border: 2px solid #00D9FF;
+            margin-bottom: 10px;
+            background: #1a1a1a;
+            display: block;
+        }
+
+        .gallery-item-info {
+            font-size: 0.85em;
+            color: #888;
+            margin-bottom: 10px;
+        }
+
+        .gallery-item-info strong {
+            color: #00D9FF;
+        }
+
+        .gallery-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .gallery-actions .btn {
+            flex: 1;
+            padding: 8px 12px;
+            font-size: 0.85em;
+        }
+
+        .preview-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .preview-box {
+            border: 2px solid #333;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            background: #0a0a0a;
+        }
+
+        .preview-box h3 {
+            margin-bottom: 10px;
+            color: #00D9FF;
+        }
+
+        .preview-box canvas {
+            max-width: 100%;
+            image-rendering: pixelated;
+            border: 2px solid #00D9FF;
+            background: #1a1a1a;
+        }
+
+        .code-output {
+            background: #0a0a0a;
+            color: #39FF14;
+            padding: 15px;
+            border: 2px solid #00D9FF;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            max-height: 400px;
+            overflow-y: auto;
+            white-space: pre;
+            margin-top: 15px;
+        }
+
+        .info-box {
+            background: rgba(0, 217, 255, 0.1);
+            border-left: 4px solid #00D9FF;
+            padding: 15px;
+            margin-top: 15px;
+            border-radius: 4px;
+        }
+
+        .info-box p {
+            margin-bottom: 5px;
+            color: #ccc;
+        }
+
+        .info-box strong {
+            color: #FFFF00;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+        }
+
+        .empty-state-icon {
+            font-size: 4em;
+            margin-bottom: 15px;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #333;
+            background: #0a0a0a;
+            color: #fff;
+            border-radius: 6px;
+            font-size: 1em;
+            transition: all 0.3s;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #00D9FF;
+            box-shadow: 0 0 15px rgba(0, 217, 255, 0.3);
+        }
+
+        @media (max-width: 768px) {
+            .preview-container {
+                grid-template-columns: 1fr;
+            }
+
+            .template-grid {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            }
+
+            header h1 {
+                font-size: 1.8em;
+            }
+
+            .tabs {
+                justify-content: center;
+            }
+
+            .tab {
+                padding: 10px 16px;
+                font-size: 0.9em;
+            }
+        }
+
+        /* Modal styles */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+
+        .modal-content {
+            background: #111;
+            border: 2px solid #00D9FF;
+            border-radius: 12px;
+            padding: 30px;
+            max-width: 800px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 0 40px rgba(0, 217, 255, 0.5);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-header h2 {
+            color: #00D9FF;
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎨 ESP32 Sprite Converter</h1>
+            <p>Convert your pixel art to RGB565 C arrays for ESP32 displays</p>
+        </header>
+
+        <div class="card">
+            <div class="tabs">
+                <button class="tab active" data-tab="converter">Converter</button>
+                <button class="tab" data-tab="templates">Templates</button>
+                <button class="tab" data-tab="gallery">My Gallery</button>
+            </div>
+
+            <!-- Converter Tab -->
+            <div class="tab-content active" id="converter">
+                <h2>Upload Your Sprite</h2>
+                <div class="upload-area" id="uploadArea">
+                    <input type="file" id="fileInput" accept="image/png,image/jpeg,image/jpg">
+                    <div class="upload-icon">📁</div>
+                    <h3>Click or Drag & Drop</h3>
+                    <p>PNG or JPG images (max 480x320)</p>
+                </div>
+
+                <div id="previewSection" style="display: none;">
+                    <div class="preview-container">
+                        <div class="preview-box">
+                            <h3>Original</h3>
+                            <canvas id="originalCanvas"></canvas>
+                        </div>
+                        <div class="preview-box">
+                            <h3>RGB565 Preview</h3>
+                            <canvas id="rgb565Canvas"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="info-box" id="imageInfo"></div>
+
+                    <div style="margin-top: 20px; display: flex; gap: 10px; flex-wrap: wrap;">
+                        <input type="text" id="spriteName" placeholder="Sprite name (e.g., hero_idle)">
+                        <button class="btn btn-primary" id="generateBtn">Generate Code</button>
+                        <button class="btn btn-success" id="saveToGalleryBtn">Save to Gallery</button>
+                    </div>
+
+                    <div id="codeOutput" style="display: none;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; flex-wrap: wrap; gap: 10px;">
+                            <h3 style="color: #00D9FF;">Generated C++ Code</h3>
+                            <button class="btn btn-secondary" id="copyCodeBtn">Copy Code</button>
+                        </div>
+                        <div class="code-output" id="codeText"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Templates Tab -->
+            <div class="tab-content" id="templates">
+                <h2>Starting Templates</h2>
+                <p style="color: #888; margin-bottom: 15px;">Download these templates to get started with the perfect dimensions for your ESP32 display</p>
+                <div class="template-grid" id="templateGrid"></div>
+            </div>
+
+            <!-- Gallery Tab -->
+            <div class="tab-content" id="gallery">
+                <h2>My Sprite Gallery</h2>
+                <div id="galleryContent"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Register service worker for PWA
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('service-worker.js')
+                .then(() => console.log('Service Worker registered'))
+                .catch(err => console.log('Service Worker registration failed:', err));
+        }
+
+        // Global state
+        let currentImageData = null;
+        let currentRGB565Data = null;
+
+        // Tab switching
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+
+                tab.classList.add('active');
+                document.getElementById(tab.dataset.tab).classList.add('active');
+
+                if (tab.dataset.tab === 'gallery') {
+                    loadGallery();
+                }
+            });
+        });
+
+        // ===== 8-BIT CHARACTER TEMPLATES (NES-style) =====
+
+        // 8-bit Warrior - Knight Armor
+        function draw8BitWarriorKnight(ctx, w, h) {
+            const p = w / 16; // pixel unit
+
+            // Helmet (silver/grey)
+            ctx.fillStyle = '#C0C0C0';
+            ctx.fillRect(p*6, p*2, p*4, p*4);
+            ctx.fillRect(p*5, p*3, p*6, p*2);
+
+            // Face opening
+            ctx.fillStyle = '#FFC08B';
+            ctx.fillRect(p*7, p*4, p*2, p*1);
+
+            // Body - Red tunic over chainmail
+            ctx.fillStyle = '#DC143C';
+            ctx.fillRect(p*5, p*6, p*6, p*4);
+
+            // Chainmail shoulders
+            ctx.fillStyle = '#808080';
+            ctx.fillRect(p*4, p*6, p*1, p*2);
+            ctx.fillRect(p*11, p*6, p*1, p*2);
+
+            // Arms
+            ctx.fillStyle = '#FFC08B';
+            ctx.fillRect(p*3, p*7, p*1, p*3);
+            ctx.fillRect(p*12, p*7, p*1, p*3);
+
+            // Belt
+            ctx.fillStyle = '#8B4513';
+            ctx.fillRect(p*5, p*9, p*6, p*1);
+
+            // Legs - grey armor
+            ctx.fillStyle = '#696969';
+            ctx.fillRect(p*6, p*10, p*2, p*4);
+            ctx.fillRect(p*8, p*10, p*2, p*4);
+
+            // Boots
+            ctx.fillStyle = '#2F2F2F';
+            ctx.fillRect(p*6, p*13, p*2, p*2);
+            ctx.fillRect(p*8, p*13, p*2, p*2);
+        }
+
+        // 8-bit Warrior - Barbarian
+        function draw8BitWarriorBarbarian(ctx, w, h) {
+            const p = w / 16;
+
+            // Hair (brown, wild)
+            ctx.fillStyle = '#654321';
+            ctx.fillRect(p*5, p*2, p*6, p*2);
+            ctx.fillRect(p*4, p*3, p*8, p*2);
+
+            // Headband
+            ctx.fillStyle = '#8B0000';
+            ctx.fillRect(p*5, p*3, p*6, p*1);
+
+            // Face
+            ctx.fillStyle = '#FFC08B';
+            ctx.fillRect(p*6, p*4, p*4, p*2);
+
+            // Bare chest (muscular)
+            ctx.fillStyle = '#E09060';
+            ctx.fillRect(p*5, p*6, p*6, p*3);
+
+            // Belt/Pants
+            ctx.fillStyle = '#654321';
+            ctx.fillRect(p*5, p*9, p*6, p*1);
+            ctx.fillRect(p*6, p*10, p*2, p*4);
+            ctx.fillRect(p*8, p*10, p*2, p*4);
+
+            // Arms
+            ctx.fillStyle = '#E09060';
+            ctx.fillRect(p*3, p*7, p*2, p*4);
+            ctx.fillRect(p*11, p*7, p*2, p*4);
+
+            // Bracers
+            ctx.fillStyle = '#8B4513';
+            ctx.fillRect(p*3, p*9, p*2, p*1);
+            ctx.fillRect(p*11, p*9, p*2, p*1);
+
+            // Boots
+            ctx.fillStyle = '#8B4513';
+            ctx.fillRect(p*6, p*13, p*2, p*2);
+            ctx.fillRect(p*8, p*13, p*2, p*2);
+        }
+
+        // 8-bit Mage - Blue Robes
+        function draw8BitMageBlue(ctx, w, h) {
+            const p = w / 16;
+
+            // Wizard hat
+            ctx.fillStyle = '#1E3A8A';
+            ctx.fillRect(p*7, p*1, p*2, p*1);
+            ctx.fillRect(p*6, p*2, p*4, p*1);
+            ctx.fillRect(p*5, p*3, p*6, p*1);
+
+            // Hat brim
+            ctx.fillStyle = '#2563EB';
+            ctx.fillRect(p*4, p*4, p*8, p*1);
+
+            // Face
+            ctx.fillStyle = '#FFC08B';
+            ctx.fillRect(p*6, p*5, p*4, p*2);
+
+            // Beard
+            ctx.fillStyle = '#D3D3D3';
+            ctx.fillRect(p*6, p*6, p*4, p*2);
+
+            // Blue robe
+            ctx.fillStyle = '#2563EB';
+            ctx.fillRect(p*5, p*8, p*6, p*5);
+
+            // Robe trim (gold)
+            ctx.fillStyle = '#FFD700';
+            ctx.fillRect(p*5, p*8, p*6, p*1);
+            ctx.fillRect(p*7, p*8, p*2, p*5);
+
+            // Sleeves
+            ctx.fillStyle = '#1E3A8A';
+            ctx.fillRect(p*3, p*8, p*2, p*4);
+            ctx.fillRect(p*11, p*8, p*2, p*4);
+
+            // Hands (holding staff)
+            ctx.fillStyle = '#FFC08B';
+            ctx.fillRect(p*3, p*11, p*2, p*1);
+            ctx.fillRect(p*11, p*11, p*2, p*1);
+
+            // Robe bottom
+            ctx.fillStyle = '#1E3A8A';
+            ctx.fillRect(p*5, p*13, p*6, p*2);
+        }
+
+        // 8-bit Mage - Red Robes
+        function draw8BitMageRed(ctx, w, h) {
+            const p = w / 16;
+
+            // Pointed hood
+            ctx.fillStyle = '#8B0000';
+            ctx.fillRect(p*7, p*1, p*2, p*2);
+            ctx.fillRect(p*6, p*3, p*4, p*2);
+
+            // Face (shadowed)
+            ctx.fillStyle = '#FFC08B';
+            ctx.fillRect(p*7, p*4, p*2, p*2);
+
+            // Red robe body
+            ctx.fillStyle = '#DC143C';
+            ctx.fillRect(p*5, p*6, p*6, p*6);
+
+            // Dark inner robe
+            ctx.fillStyle = '#4A0000';
+            ctx.fillRect(p*7, p*7, p*2, p*5);
+
+            // Sleeves (wide)
+            ctx.fillStyle = '#8B0000';
+            ctx.fillRect(p*3, p*7, p*3, p*5);
+            ctx.fillRect(p*10, p*7, p*3, p*5);
+
+            // Belt with mystical symbol
+            ctx.fillStyle = '#2F2F2F';
+            ctx.fillRect(p*5, p*10, p*6, p*1);
+
+            // Mystical gem
+            ctx.fillStyle = '#9370DB';
+            ctx.fillRect(p*7, p*10, p*2, p*1);
+
+            // Robe bottom
+            ctx.fillStyle = '#8B0000';
+            ctx.fillRect(p*5, p*12, p*6, p*3);
+        }
+
+        // 8-bit Rogue - Thief
+        function draw8BitRogueThief(ctx, w, h) {
+            const p = w / 16;
+
+            // Hood
+            ctx.fillStyle = '#2F2F2F';
+            ctx.fillRect(p*5, p*2, p*6, p*3);
+            ctx.fillRect(p*6, p*1, p*4, p*1);
+
+            // Face (mostly covered)
+            ctx.fillStyle = '#FFC08B';
+            ctx.fillRect(p*7, p*4, p*2, p*1);
+
+            // Mask
+            ctx.fillStyle = '#1A1A1A';
+            ctx.fillRect(p*6, p*5, p*4, p*1);
+
+            // Leather vest
+            ctx.fillStyle = '#654321';
+            ctx.fillRect(p*6, p*6, p*4, p*4);
+
+            // Dark shirt underneath
+            ctx.fillStyle = '#2F2F2F';
+            ctx.fillRect(p*5, p*7, p*1, p*3);
+            ctx.fillRect(p*10, p*7, p*1, p*3);
+
+            // Arms
+            ctx.fillStyle = '#1A1A1A';
+            ctx.fillRect(p*3, p*7, p*2, p*4);
+            ctx.fillRect(p*11, p*7, p*2, p*4);
+
+            // Hands
+            ctx.fillStyle = '#FFC08B';
+            ctx.fillRect(p*3, p*10, p*2, p*1);
+            ctx.fillRect(p*11, p*10, p*2, p*1);
+
+            // Belt
+            ctx.fillStyle = '#8B4513';
+            ctx.fillRect(p*6, p*10, p*4, p*1);
+
+            // Dark pants
+            ctx.fillStyle = '#1A1A1A';
+            ctx.fillRect(p*6, p*11, p*2, p*3);
+            ctx.fillRect(p*8, p*11, p*2, p*3);
+
+            // Boots
+            ctx.fillStyle = '#2F2F2F';
+            ctx.fillRect(p*6, p*13, p*2, p*2);
+            ctx.fillRect(p*8, p*13, p*2, p*2);
+        }
+
+        // 8-bit Rogue - Ninja
+        function draw8BitRogueNinja(ctx, w, h) {
+            const p = w / 16;
+
+            // Ninja hood
+            ctx.fillStyle = '#1A1A1A';
+            ctx.fillRect(p*5, p*2, p*6, p*4);
+
+            // Eyes
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillRect(p*6, p*4, p*1, p*1);
+            ctx.fillRect(p*9, p*4, p*1, p*1);
+
+            // Ninja gi (black)
+            ctx.fillStyle = '#1A1A1A';
+            ctx.fillRect(p*5, p*6, p*6, p*5);
+
+            // Sash (red)
+            ctx.fillStyle = '#DC143C';
+            ctx.fillRect(p*5, p*9, p*6, p*1);
+            ctx.fillRect(p*6, p*10, p*1, p*2);
+
+            // Arms
+            ctx.fillStyle = '#1A1A1A';
+            ctx.fillRect(p*3, p*7, p*2, p*4);
+            ctx.fillRect(p*11, p*7, p*2, p*4);
+
+            // Leg wraps
+            ctx.fillStyle = '#1A1A1A';
+            ctx.fillRect(p*6, p*11, p*2, p*3);
+            ctx.fillRect(p*8, p*11, p*2, p*3);
+
+            // Wrap details
+            ctx.fillStyle = '#4A4A4A';
+            ctx.fillRect(p*6, p*12, p*2, p*1);
+            ctx.fillRect(p*8, p*12, p*2, p*1);
+
+            // Tabi boots
+            ctx.fillStyle = '#2F2F2F';
+            ctx.fillRect(p*6, p*14, p*2, p*1);
+            ctx.fillRect(p*8, p*14, p*2, p*1);
+        }
+
+        // ===== 16-BIT CHARACTER TEMPLATES (SNES-style with more detail) =====
+
+        // 16-bit Warrior - Paladin
+        function draw16BitWarriorPaladin(ctx, w, h) {
+            const p = w / 32;
+
+            // Helmet base (silver)
+            ctx.fillStyle = '#E8E8E8';
+            ctx.fillRect(p*12, p*4, p*8, p*6);
+
+            // Helmet highlights
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillRect(p*13, p*5, p*2, p*1);
+            ctx.fillRect(p*13, p*6, p*1, p*2);
+
+            // Helmet shadows
+            ctx.fillStyle = '#A0A0A0';
+            ctx.fillRect(p*17, p*7, p*2, p*2);
+
+            // Visor
+            ctx.fillStyle = '#4A4A4A';
+            ctx.fillRect(p*14, p*7, p*4, p*2);
+
+            // Plume (red)
+            ctx.fillStyle = '#DC143C';
+            ctx.fillRect(p*15, p*2, p*2, p*2);
+            ctx.fillStyle = '#FF6347';
+            ctx.fillRect(p*16, p*3, p*1, p*1);
+
+            // Neck
+            ctx.fillStyle = '#C0C0C0';
+            ctx.fillRect(p*14, p*10, p*4, p*1);
+
+            // Shoulder armor (gold trim)
+            ctx.fillStyle = '#FFD700';
+            ctx.fillRect(p*10, p*11, p*4, p*3);
+            ctx.fillRect(p*18, p*11, p*4, p*3);
+
+            // Shoulder highlights
+            ctx.fillStyle = '#FFF68F';
+            ctx.fillRect(p*11, p*12, p*1, p*1);
+            ctx.fillRect(p*19, p*12, p*1, p*1);
+
+            // Breastplate (white/silver)
+            ctx.fillStyle = '#F5F5F5';
+            ctx.fillRect(p*12, p*11, p*8, p*6);
+
+            // Breastplate highlights
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillRect(p*13, p*12, p*2, p*2);
+
+            // Breastplate shadows
+            ctx.fillStyle = '#D3D3D3';
+            ctx.fillRect(p*17, p*15, p*2, p*2);
+
+            // Holy symbol (cross)
+            ctx.fillStyle = '#FFD700';
+            ctx.fillRect(p*15, p*13, p*2, p*3);
+            ctx.fillRect(p*14, p*14, p*4, p*1);
+
+            // Arms (armored)
+            ctx.fillStyle = '#C0C0C0';
+            ctx.fillRect(p*8, p*12, p*2, p*6);
+            ctx.fillRect(p*22, p*12, p*2, p*6);
+
+            // Gauntlets
+            ctx.fillStyle = '#A0A0A0';
+            ctx.fillRect(p*8, p*17, p*2, p*2);
+            ctx.fillRect(p*22, p*17, p*2, p*2);
+
+            // Belt
+            ctx.fillStyle = '#8B4513';
+            ctx.fillRect(p*12, p*17, p*8, p*2);
+            ctx.fillStyle = '#FFD700';
+            ctx.fillRect(p*15, p*17, p*2, p*2);
+
+            // Leg armor
+            ctx.fillStyle = '#E8E8E8';
+            ctx.fillRect(p*13, p*19, p*3, p*8);
+            ctx.fillRect(p*16, p*19, p*3, p*8);
+
+            // Leg shadows
+            ctx.fillStyle = '#C0C0C0';
+            ctx.fillRect(p*15, p*22, p*1, p*4);
+            ctx.fillRect(p*18, p*22, p*1, p*4);
+
+            // Boots
+            ctx.fillStyle = '#696969';
+            ctx.fillRect(p*12, p*27, p*4, p*4);
+            ctx.fillRect(p*16, p*27, p*4, p*4);
+
+            // Boot highlights
+            ctx.fillStyle = '#808080';
+            ctx.fillRect(p*13, p*28, p*1, p*2);
+            ctx.fillRect(p*17, p*28, p*1, p*2);
+        }
+
+        // 16-bit Warrior - Samurai
+        function draw16BitWarriorSamurai(ctx, w, h) {
+            const p = w / 32;
+
+            // Topknot (black hair)
+            ctx.fillStyle = '#1A1A1A';
+            ctx.fillRect(p*14, p*3, p*4, p*2);
+            ctx.fillRect(p*15, p*2, p*2, p*1);
+
+            // Headband (white)
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillRect(p*12, p*6, p*8, p*2);
+
+            // Face
+            ctx.fillStyle = '#FFD4A8';
+            ctx.fillRect(p*13, p*8, p*6, p*4);
+
+            // Face shading
+            ctx.fillStyle = '#FFBC7B';
+            ctx.fillRect(p*17, p*9, p*2, p*2);
+
+            // Shoulder armor (do)
+            ctx.fillStyle = '#8B0000';
+            ctx.fillRect(p*10, p*12, p*4, p*4);
+            ctx.fillRect(p*18, p*12, p*4, p*4);
+
+            // Armor lacing
+            ctx.fillStyle = '#FFD700';
+            ctx.fillRect(p*11, p*13, p*1, p*2);
+            ctx.fillRect(p*20, p*13, p*1, p*2);
+
+            // Chest plate
+            ctx.fillStyle = '#654321';
+            ctx.fillRect(p*12, p*12, p*8, p*8);
+
+            // Chest plate segments
+            ctx.fillStyle = '#4A2511';
+            for(let i = 0; i < 4; i++) {
+                ctx.fillRect(p*12, p*(13 + i*2), p*8, p*1);
+            }
+
+            // Chest symbol (mon)
+            ctx.fillStyle = '#FFD700';
+            ctx.fillRect(p*15, p*15, p*2, p*2);
+            ctx.fillRect(p*14, p*16, p*4, p*1);
+
+            // Arms
+            ctx.fillStyle = '#FFD4A8';
+            ctx.fillRect(p*8, p*14, p*2, p*4);
+            ctx.fillRect(p*22, p*14, p*2, p*4);
+
+            // Forearm guards
+            ctx.fillStyle = '#654321';
+            ctx.fillRect(p*8, p*16, p*2, p*4);
+            ctx.fillRect(p*22, p*16, p*2, p*4);
+
+            // Belt (obi)
+            ctx.fillStyle = '#1A1A1A';
+            ctx.fillRect(p*11, p*20, p*10, p*3);
+
+            // Hakama (pants)
+            ctx.fillStyle = '#2F2F2F';
+            ctx.fillRect(p*12, p*23, p*8, p*5);
+
+            // Hakama pleats
+            ctx.fillStyle = '#1A1A1A';
+            ctx.fillRect(p*14, p*23, p*1, p*5);
+            ctx.fillRect(p*16, p*23, p*1, p*5);
+            ctx.fillRect(p*18, p*23, p*1, p*5);
+
+            // Legs
+            ctx.fillStyle = '#FFD4A8';
+            ctx.fillRect(p*13, p*28, p*2, p*2);
+            ctx.fillRect(p*17, p*28, p*2, p*2);
+
+            // Sandals
+            ctx.fillStyle = '#654321';
+            ctx.fillRect(p*12, p*30, p*4, p*1);
+            ctx.fillRect(p*16, p*30, p*4, p*1);
+        }
+
+        // 16-bit Mage - Arch Wizard
+        function draw16BitMageArchWizard(ctx, w, h) {
+            const p = w / 32;
+
+            // Hat tip
+            ctx.fillStyle = '#1E3A8A';
+            ctx.fillRect(p*15, p*2, p*2, p*2);
+
+            // Hat body
+            ctx.fillStyle = '#2563EB';
+            ctx.fillRect(p*14, p*4, p*4, p*2);
+            ctx.fillRect(p*13, p*6, p*6, p*2);
+            ctx.fillRect(p*12, p*8, p*8, p*2);
+
+            // Hat highlights
+            ctx.fillStyle = '#60A5FA';
+            ctx.fillRect(p*14, p*5, p*2, p*1);
+
+            // Stars on hat
+            ctx.fillStyle = '#FFD700';
+            ctx.fillRect(p*14, p*7, p*1, p*1);
+            ctx.fillRect(p*17, p*6, p*1, p*1);
+
+            // Hat brim
+            ctx.fillStyle = '#1E3A8A';
+            ctx.fillRect(p*11, p*10, p*10, p*2);
+
+            // Face
+            ctx.fillStyle = '#FFE0BD';
+            ctx.fillRect(p*13, p*12, p*6, p*4);
+
+            // Eyes
+            ctx.fillStyle = '#4A90E2';
+            ctx.fillRect(p*14, p*13, p*1, p*1);
+            ctx.fillRect(p*17, p*13, p*1, p*1);
+
+            // Long beard (white)
+            ctx.fillStyle = '#F5F5F5';
+            ctx.fillRect(p*13, p*15, p*6, p*3);
+            ctx.fillRect(p*12, p*18, p*8, p*4);
+
+            // Beard highlights
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillRect(p*14, p*16, p*2, p*1);
+
+            // Beard shadows
+            ctx.fillStyle = '#D3D3D3';
+            ctx.fillRect(p*17, p*19, p*2, p*2);
+
+            // Robe (rich blue)
+            ctx.fillStyle = '#2563EB';
+            ctx.fillRect(p*11, p*16, p*10, p*12);
+
+            // Robe highlights
+            ctx.fillStyle = '#60A5FA';
+            ctx.fillRect(p*12, p*17, p*2, p*8);
+
+            // Robe shadows
+            ctx.fillStyle = '#1E3A8A';
+            ctx.fillRect(p*18, p*20, p*2, p*6);
+
+            // Ornate trim (gold)
+            ctx.fillStyle = '#FFD700';
+            ctx.fillRect(p*11, p*16, p*10, p*1);
+            ctx.fillRect(p*15, p*17, p*2, p*10);
+
+            // Mystical runes
+            ctx.fillStyle = '#9370DB';
+            ctx.fillRect(p*13, p*22, p*1, p*2);
+            ctx.fillRect(p*18, p*24, p*1, p*2);
+
+            // Wide sleeves
+            ctx.fillStyle = '#1E3A8A';
+            ctx.fillRect(p*8, p*18, p*3, p*6);
+            ctx.fillRect(p*21, p*18, p*3, p*6);
+
+            // Sleeve trim
+            ctx.fillStyle = '#FFD700';
+            ctx.fillRect(p*8, p*23, p*3, p*1);
+            ctx.fillRect(p*21, p*23, p*3, p*1);
+
+            // Hands with magic glow
+            ctx.fillStyle = '#FFE0BD';
+            ctx.fillRect(p*8, p*24, p*3, p*2);
+            ctx.fillRect(p*21, p*24, p*3, p*2);
+
+            // Magic energy
+            ctx.fillStyle = '#9370DB';
+            ctx.fillRect(p*7, p*25, p*1, p*1);
+            ctx.fillRect(p*24, p*25, p*1, p*1);
+            ctx.fillStyle = '#DDA0DD';
+            ctx.fillRect(p*8, p*26, p*1, p*1);
+            ctx.fillRect(p*23, p*26, p*1, p*1);
+
+            // Robe bottom
+            ctx.fillStyle = '#2563EB';
+            ctx.fillRect(p*10, p*28, p*12, p*3);
+        }
+
+        // 16-bit Mage - Elementalist
+        function draw16BitMageElementalist(ctx, w, h) {
+            const p = w / 32;
+
+            // Hood
+            ctx.fillStyle = '#4A0E4E';
+            ctx.fillRect(p*13, p*4, p*6, p*4);
+            ctx.fillRect(p*12, p*6, p*8, p*4);
+
+            // Hood highlights
+            ctx.fillStyle = '#6A1B9A';
+            ctx.fillRect(p*14, p*6, p*2, p*2);
+
+            // Face (partially shadowed)
+            ctx.fillStyle = '#FFE0BD';
+            ctx.fillRect(p*14, p*10, p*4, p*3);
+
+            // Mysterious eyes (glowing)
+            ctx.fillStyle = '#00FFFF';
+            ctx.fillRect(p*15, p*11, p*1, p*1);
+            ctx.fillRect(p*16, p*11, p*1, p*1);
+
+            // Shoulder crystals (elemental)
+            ctx.fillStyle = '#FF4500';
+            ctx.fillRect(p*10, p*13, p*2, p*2);
+            ctx.fillStyle = '#4169E1';
+            ctx.fillRect(p*20, p*13, p*2, p*2);
+
+            // Crystal glow
+            ctx.fillStyle = '#FFA500';
+            ctx.fillRect(p*9, p*14, p*1, p*1);
+            ctx.fillStyle = '#87CEEB';
+            ctx.fillRect(p*22, p*14, p*1, p*1);
+
+            // Robe base (purple)
+            ctx.fillStyle = '#6A1B9A';
+            ctx.fillRect(p*12, p*13, p*8, p*10);
+
+            // Elemental patterns (fire)
+            ctx.fillStyle = '#FF6347';
+            ctx.fillRect(p*13, p*15, p*2, p*1);
+            ctx.fillRect(p*14, p*16, p*1, p*1);
+
+            // Elemental patterns (ice)
+            ctx.fillStyle = '#4169E1';
+            ctx.fillRect(p*17, p*18, p*2, p*1);
+            ctx.fillRect(p*18, p*19, p*1, p*1);
+
+            // Elemental patterns (lightning)
+            ctx.fillStyle = '#FFFF00';
+            ctx.fillRect(p*15, p*20, p*1, p*2);
+            ctx.fillRect(p*16, p*21, p*1, p*1);
+
+            // Belt with orb
+            ctx.fillStyle = '#2F2F2F';
+            ctx.fillRect(p*12, p*21, p*8, p*2);
+
+            // Mystical orb
+            ctx.fillStyle = '#9370DB';
+            ctx.fillRect(p*15, p*21, p*2, p*2);
+            ctx.fillStyle = '#E6E6FA';
+            ctx.fillRect(p*15, p*21, p*1, p*1);
+
+            // Arms
+            ctx.fillStyle = '#4A0E4E';
+            ctx.fillRect(p*9, p*15, p*3, p*6);
+            ctx.fillRect(p*20, p*15, p*3, p*6);
+
+            // Hands (casting)
+            ctx.fillStyle = '#FFE0BD';
+            ctx.fillRect(p*9, p*20, p*3, p*2);
+            ctx.fillRect(p*20, p*20, p*3, p*2);
+
+            // Elemental magic (left hand - fire)
+            ctx.fillStyle = '#FF4500';
+            ctx.fillRect(p*8, p*21, p*2, p*2);
+            ctx.fillStyle = '#FFA500';
+            ctx.fillRect(p*7, p*22, p*1, p*1);
+
+            // Elemental magic (right hand - ice)
+            ctx.fillStyle = '#4169E1';
+            ctx.fillRect(p*22, p*21, p*2, p*2);
+            ctx.fillStyle = '#87CEEB';
+            ctx.fillRect(p*24, p*22, p*1, p*1);
+
+            // Robe bottom
+            ctx.fillStyle = '#4A0E4E';
+            ctx.fillRect(p*11, p*23, p*10, p*5);
+
+            // Robe shadows
+            ctx.fillStyle = '#2E0B35';
+            ctx.fillRect(p*15, p*24, p*2, p*4);
+        }
+
+        // 16-bit Rogue - Assassin
+        function draw16BitRogueAssassin(ctx, w, h) {
+            const p = w / 32;
+
+            // Hood (dark)
+            ctx.fillStyle = '#1A1A1A';
+            ctx.fillRect(p*12, p*4, p*8, p*6);
+            ctx.fillRect(p*11, p*6, p*10, p*4);
+
+            // Hood shadows
+            ctx.fillStyle = '#0A0A0A';
+            ctx.fillRect(p*16, p*7, p*4, p*3);
+
+            // Face (mostly hidden)
+            ctx.fillStyle = '#FFD4A8';
+            ctx.fillRect(p*14, p*9, p*4, p*2);
+
+            // Eyes (intense)
+            ctx.fillStyle = '#FF0000';
+            ctx.fillRect(p*15, p*10, p*1, p*1);
+            ctx.fillRect(p*16, p*10, p*1, p*1);
+
+            // Mask/scarf
+            ctx.fillStyle = '#2F2F2F';
+            ctx.fillRect(p*13, p*11, p*6, p*2);
+
+            // Shoulder cloak
+            ctx.fillStyle = '#2F2F2F';
+            ctx.fillRect(p*10, p*13, p*12, p*3);
+
+            // Cloak shadows
+            ctx.fillStyle = '#1A1A1A';
+            ctx.fillRect(p*17, p*14, p*4, p*2);
+
+            // Leather armor
+            ctx.fillStyle = '#3D2817';
+            ctx.fillRect(p*12, p*16, p*8, p*6);
+
+            // Armor studs
+            ctx.fillStyle = '#696969';
+            ctx.fillRect(p*13, p*17, p*1, p*1);
+            ctx.fillRect(p*18, p*17, p*1, p*1);
+            ctx.fillRect(p*13, p*19, p*1, p*1);
+            ctx.fillRect(p*18, p*19, p*1, p*1);
+
+            // Straps
+            ctx.fillStyle = '#2F2F2F';
+            ctx.fillRect(p*14, p*16, p*1, p*6);
+            ctx.fillRect(p*17, p*16, p*1, p*6);
+
+            // Arms (black sleeves)
+            ctx.fillStyle = '#1A1A1A';
+            ctx.fillRect(p*9, p*16, p*3, p*8);
+            ctx.fillRect(p*20, p*16, p*3, p*8);
+
+            // Arm guards
+            ctx.fillStyle = '#3D2817';
+            ctx.fillRect(p*9, p*20, p*3, p*3);
+            ctx.fillRect(p*20, p*20, p*3, p*3);
+
+            // Hidden blades
+            ctx.fillStyle = '#C0C0C0';
+            ctx.fillRect(p*8, p*23, p*2, p*1);
+            ctx.fillRect(p*23, p*23, p*2, p*1);
+
+            // Hands
+            ctx.fillStyle = '#FFD4A8';
+            ctx.fillRect(p*9, p*22, p*3, p*2);
+            ctx.fillRect(p*20, p*22, p*3, p*2);
+
+            // Belt with pouches
+            ctx.fillStyle = '#4A2511';
+            ctx.fillRect(p*12, p*22, p*8, p*2);
+
+            // Pouches
+            ctx.fillStyle = '#3D2817';
+            ctx.fillRect(p*13, p*23, p*2, p*2);
+            ctx.fillRect(p*17, p*23, p*2, p*2);
+
+            // Belt buckle
+            ctx.fillStyle = '#696969';
+            ctx.fillRect(p*15, p*22, p*2, p*2);
+
+            // Dark pants
+            ctx.fillStyle = '#1A1A1A';
+            ctx.fillRect(p*13, p*24, p*3, p*6);
+            ctx.fillRect(p*16, p*24, p*3, p*6);
+
+            // Boots
+            ctx.fillStyle = '#2F2F2F';
+            ctx.fillRect(p*12, p*28, p*4, p*3);
+            ctx.fillRect(p*16, p*28, p*4, p*3);
+
+            // Boot details
+            ctx.fillStyle = '#4A4A4A';
+            ctx.fillRect(p*13, p*29, p*2, p*1);
+            ctx.fillRect(p*17, p*29, p*2, p*1);
+        }
+
+        // 16-bit Rogue - Ranger
+        function draw16BitRogueRanger(ctx, w, h) {
+            const p = w / 32;
+
+            // Hair (brown)
+            ctx.fillStyle = '#654321';
+            ctx.fillRect(p*12, p*4, p*8, p*4);
+
+            // Headband
+            ctx.fillStyle = '#228B22';
+            ctx.fillRect(p*12, p*6, p*8, p*2);
+
+            // Face
+            ctx.fillStyle = '#FFD4A8';
+            ctx.fillRect(p*13, p*8, p*6, p*4);
+
+            // Face shading
+            ctx.fillStyle = '#FFBC7B';
+            ctx.fillRect(p*17, p*9, p*2, p*2);
+
+            // Eyes
+            ctx.fillStyle = '#228B22';
+            ctx.fillRect(p*14, p*9, p*1, p*1);
+            ctx.fillRect(p*17, p*9, p*1, p*1);
+
+            // Cloak/Cape (forest green)
+            ctx.fillStyle = '#2F4F2F';
+            ctx.fillRect(p*10, p*12, p*4, p*8);
+            ctx.fillRect(p*18, p*12, p*4, p*8);
+
+            // Cloak highlights
+            ctx.fillStyle = '#3CB371';
+            ctx.fillRect(p*11, p*13, p*1, p*4);
+
+            // Leather vest
+            ctx.fillStyle = '#654321';
+            ctx.fillRect(p*12, p*12, p*8, p*8);
+
+            // Vest lacing
+            ctx.fillStyle = '#8B4513';
+            ctx.fillRect(p*15, p*13, p*2, p*1);
+            ctx.fillRect(p*15, p*15, p*2, p*1);
+            ctx.fillRect(p*15, p*17, p*2, p*1);
+
+            // Shirt (green)
+            ctx.fillStyle = '#556B2F';
+            ctx.fillRect(p*13, p*13, p*2, p*6);
+            ctx.fillRect(p*17, p*13, p*2, p*6);
+
+            // Arms
+            ctx.fillStyle = '#654321';
+            ctx.fillRect(p*9, p*14, p*3, p*4);
+            ctx.fillRect(p*20, p*14, p*3, p*4);
+
+            // Bracers
+            ctx.fillStyle = '#8B4513';
+            ctx.fillRect(p*9, p*18, p*3, p*4);
+            ctx.fillRect(p*20, p*18, p*3, p*4);
+
+            // Bracer straps
+            ctx.fillStyle = '#654321';
+            ctx.fillRect(p*9, p*19, p*3, p*1);
+            ctx.fillRect(p*20, p*19, p*3, p*1);
+
+            // Hands
+            ctx.fillStyle = '#FFD4A8';
+            ctx.fillRect(p*9, p*22, p*3, p*2);
+            ctx.fillRect(p*20, p*22, p*3, p*2);
+
+            // Quiver strap
+            ctx.fillStyle = '#8B4513';
+            ctx.fillRect(p*14, p*13, p*1, p*8);
+
+            // Belt
+            ctx.fillStyle = '#654321';
+            ctx.fillRect(p*12, p*20, p*8, p*2);
+
+            // Belt pouch
+            ctx.fillStyle = '#8B4513';
+            ctx.fillRect(p*17, p*21, p*2, p*3);
+
+            // Pants (brown)
+            ctx.fillStyle = '#654321';
+            ctx.fillRect(p*13, p*22, p*3, p*7);
+            ctx.fillRect(p*16, p*22, p*3, p*7);
+
+            // Knee pads
+            ctx.fillStyle = '#4A2511';
+            ctx.fillRect(p*13, p*25, p*3, p*2);
+            ctx.fillRect(p*16, p*25, p*3, p*2);
+
+            // Boots (high)
+            ctx.fillStyle = '#3D2817';
+            ctx.fillRect(p*12, p*27, p*4, p*4);
+            ctx.fillRect(p*16, p*27, p*4, p*4);
+
+            // Boot straps
+            ctx.fillStyle = '#654321';
+            ctx.fillRect(p*12, p*28, p*4, p*1);
+            ctx.fillRect(p*16, p*28, p*4, p*1);
+        }
+
+        // ===== FIGHTER SHIP TEMPLATES (Top-down, Galaga-style) =====
+
+        // Simple Fighter - Basic Ship
+        function drawShipBasic(ctx, w, h) {
+            const p = w / 16;
+
+            // Cockpit (blue canopy)
+            ctx.fillStyle = '#4169E1';
+            ctx.fillRect(p*7, p*5, p*2, p*3);
+
+            // Main body (grey)
+            ctx.fillStyle = '#A0A0A0';
+            ctx.fillRect(p*6, p*6, p*4, p*6);
+
+            // Body highlight
+            ctx.fillStyle = '#D3D3D3';
+            ctx.fillRect(p*6, p*7, p*1, p*3);
+
+            // Nose
+            ctx.fillStyle = '#808080';
+            ctx.fillRect(p*7, p*3, p*2, p*2);
+
+            // Wings
+            ctx.fillStyle = '#696969';
+            ctx.fillRect(p*3, p*8, p*3, p*3);
+            ctx.fillRect(p*10, p*8, p*3, p*3);
+
+            // Wing highlights
+            ctx.fillStyle = '#A0A0A0';
+            ctx.fillRect(p*3, p*8, p*1, p*1);
+            ctx.fillRect(p*12, p*8, p*1, p*1);
+
+            // Engines
+            ctx.fillStyle = '#4A4A4A';
+            ctx.fillRect(p*6, p*12, p*1, p*2);
+            ctx.fillRect(p*9, p*12, p*1, p*2);
+
+            // Engine glow
+            ctx.fillStyle = '#FF4500';
+            ctx.fillRect(p*6, p*13, p*1, p*1);
+            ctx.fillRect(p*9, p*13, p*1, p*1);
+        }
+
+        // Medium Fighter - Scout Ship
+        function drawShipScout(ctx, w, h) {
+            const p = w / 16;
+
+            // Nose tip
+            ctx.fillStyle = '#FFD700';
+            ctx.fillRect(p*7, p*2, p*2, p*1);
+
+            // Front body
+            ctx.fillStyle = '#C0C0C0';
+            ctx.fillRect(p*6, p*3, p*4, p*2);
+            ctx.fillRect(p*7, p*5, p*2, p*1);
+
+            // Cockpit
+            ctx.fillStyle = '#00CED1';
+            ctx.fillRect(p*7, p*6, p*2, p*2);
+
+            // Cockpit highlight
+            ctx.fillStyle = '#E0FFFF';
+            ctx.fillRect(p*7, p*6, p*1, p*1);
+
+            // Main body
+            ctx.fillStyle = '#A0A0A0';
+            ctx.fillRect(p*6, p*8, p*4, p*4);
+
+            // Body panels
+            ctx.fillStyle = '#808080';
+            ctx.fillRect(p*6, p*9, p*4, p*1);
+
+            // Side pods
+            ctx.fillStyle = '#696969';
+            ctx.fillRect(p*4, p*7, p*2, p*6);
+            ctx.fillRect(p*10, p*7, p*2, p*6);
+
+            // Pod highlights
+            ctx.fillStyle = '#A0A0A0';
+            ctx.fillRect(p*4, p*7, p*1, p*2);
+            ctx.fillRect(p*11, p*7, p*1, p*2);
+
+            // Small wings
+            ctx.fillStyle = '#FFD700';
+            ctx.fillRect(p*3, p*9, p*1, p*2);
+            ctx.fillRect(p*12, p*9, p*1, p*2);
+
+            // Engines (twin)
+            ctx.fillStyle = '#2F2F2F';
+            ctx.fillRect(p*5, p*12, p*2, p*2);
+            ctx.fillRect(p*9, p*12, p*2, p*2);
+
+            // Engine cores
+            ctx.fillStyle = '#1E90FF';
+            ctx.fillRect(p*5, p*12, p*2, p*1);
+            ctx.fillRect(p*9, p*12, p*2, p*1);
+
+            // Engine glow
+            ctx.fillStyle = '#00BFFF';
+            ctx.fillRect(p*5, p*13, p*2, p*1);
+            ctx.fillRect(p*9, p*13, p*2, p*1);
+        }
+
+        // Advanced Fighter - Interceptor
+        function drawShipInterceptor(ctx, w, h) {
+            const p = w / 16;
+
+            // Nose spike
+            ctx.fillStyle = '#FF6347';
+            ctx.fillRect(p*7, p*1, p*2, p*1);
+            ctx.fillRect(p*7, p*2, p*2, p*2);
+
+            // Front armor
+            ctx.fillStyle = '#E8E8E8';
+            ctx.fillRect(p*6, p*4, p*4, p*2);
+
+            // Armor highlight
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillRect(p*6, p*4, p*1, p*1);
+
+            // Cockpit (red tint)
+            ctx.fillStyle = '#DC143C';
+            ctx.fillRect(p*7, p*6, p*2, p*2);
+
+            // Cockpit frame
+            ctx.fillStyle = '#C0C0C0';
+            ctx.fillRect(p*6, p*6, p*1, p*2);
+            ctx.fillRect(p*9, p*6, p*1, p*2);
+
+            // Main fuselage
+            ctx.fillStyle = '#A0A0A0';
+            ctx.fillRect(p*5, p*8, p*6, p*5);
+
+            // Fuselage panels
+            ctx.fillStyle = '#C0C0C0';
+            ctx.fillRect(p*6, p*9, p*1, p*3);
+            ctx.fillRect(p*9, p*9, p*1, p*3);
+
+            // Center line
+            ctx.fillStyle = '#808080';
+            ctx.fillRect(p*7, p*8, p*2, p*5);
+
+            // Swept wings
+            ctx.fillStyle = '#696969';
+            ctx.fillRect(p*2, p*9, p*3, p*2);
+            ctx.fillRect(p*11, p*9, p*3, p*2);
+            ctx.fillRect(p*3, p*11, p*2, p*2);
+            ctx.fillRect(p*11, p*11, p*2, p*2);
+
+            // Wing highlights
+            ctx.fillStyle = '#A0A0A0';
+            ctx.fillRect(p*2, p*9, p*1, p*1);
+            ctx.fillRect(p*13, p*9, p*1, p*1);
+
+            // Wing weapons (missiles)
+            ctx.fillStyle = '#FFD700';
+            ctx.fillRect(p*3, p*10, p*1, p*2);
+            ctx.fillRect(p*12, p*10, p*1, p*2);
+
+            // Stabilizers
+            ctx.fillStyle = '#C0C0C0';
+            ctx.fillRect(p*5, p*13, p*2, p*2);
+            ctx.fillRect(p*9, p*13, p*2, p*2);
+
+            // Main engines (triple)
+            ctx.fillStyle = '#2F2F2F';
+            ctx.fillRect(p*6, p*13, p*1, p*2);
+            ctx.fillRect(p*7, p*14, p*2, p*1);
+            ctx.fillRect(p*9, p*13, p*1, p*2);
+
+            // Engine glow (hot)
+            ctx.fillStyle = '#FF4500';
+            ctx.fillRect(p*6, p*14, p*1, p*1);
+            ctx.fillRect(p*9, p*14, p*1, p*1);
+            ctx.fillStyle = '#FFA500';
+            ctx.fillRect(p*7, p*14, p*2, p*1);
+        }
+
+        // Complex Fighter - Heavy Gunship
+        function drawShipGunship(ctx, w, h) {
+            const p = w / 24;
+
+            // Reinforced nose
+            ctx.fillStyle = '#696969';
+            ctx.fillRect(p*10, p*2, p*4, p*2);
+            ctx.fillRect(p*9, p*4, p*6, p*2);
+
+            // Nose armor highlight
+            ctx.fillStyle = '#A0A0A0';
+            ctx.fillRect(p*10, p*2, p*1, p*1);
+
+            // Heavy cockpit
+            ctx.fillStyle = '#2F4F4F';
+            ctx.fillRect(p*10, p*6, p*4, p*3);
+
+            // Cockpit windows
+            ctx.fillStyle = '#4682B4';
+            ctx.fillRect(p*11, p*7, p*2, p*1);
+
+            // Main hull (armored)
+            ctx.fillStyle = '#808080';
+            ctx.fillRect(p*8, p*9, p*8, p*7);
+
+            // Hull plating
+            ctx.fillStyle = '#A0A0A0';
+            ctx.fillRect(p*9, p*10, p*2, p*1);
+            ctx.fillRect(p*13, p*10, p*2, p*1);
+            ctx.fillRect(p*9, p*13, p*2, p*1);
+            ctx.fillRect(p*13, p*13, p*2, p*1);
+
+            // Center cannon
+            ctx.fillStyle = '#4A4A4A';
+            ctx.fillRect(p*11, p*10, p*2, p*4);
+
+            // Cannon barrel
+            ctx.fillStyle = '#2F2F2F';
+            ctx.fillRect(p*11, p*8, p*2, p*2);
+
+            // Main wings (large)
+            ctx.fillStyle = '#696969';
+            ctx.fillRect(p*4, p*10, p*4, p*5);
+            ctx.fillRect(p*16, p*10, p*4, p*5);
+
+            // Wing armor panels
+            ctx.fillStyle = '#808080';
+            ctx.fillRect(p*5, p*11, p*2, p*1);
+            ctx.fillRect(p*17, p*11, p*2, p*1);
+
+            // Wing cannons
+            ctx.fillStyle = '#2F2F2F';
+            ctx.fillRect(p*5, p*12, p*2, p*3);
+            ctx.fillRect(p*17, p*12, p*2, p*3);
+
+            // Cannon muzzles
+            ctx.fillStyle = '#FFD700';
+            ctx.fillRect(p*5, p*12, p*2, p*1);
+            ctx.fillRect(p*17, p*12, p*2, p*1);
+
+            // Missile pods
+            ctx.fillStyle = '#4A4A4A';
+            ctx.fillRect(p*3, p*13, p*1, p*3);
+            ctx.fillRect(p*20, p*13, p*1, p*3);
+
+            // Missiles (red tips)
+            ctx.fillStyle = '#DC143C';
+            ctx.fillRect(p*3, p*13, p*1, p*1);
+            ctx.fillRect(p*20, p*13, p*1, p*1);
+
+            // Tail section
+            ctx.fillStyle = '#696969';
+            ctx.fillRect(p*9, p*16, p*6, p*3);
+
+            // Stabilizers
+            ctx.fillStyle = '#808080';
+            ctx.fillRect(p*7, p*17, p*2, p*3);
+            ctx.fillRect(p*15, p*17, p*2, p*3);
+
+            // Engine clusters (quad)
+            ctx.fillStyle = '#2F2F2F';
+            ctx.fillRect(p*8, p*17, p*2, p*3);
+            ctx.fillRect(p*10, p*18, p*1, p*2);
+            ctx.fillRect(p*13, p*18, p*1, p*2);
+            ctx.fillRect(p*14, p*17, p*2, p*3);
+
+            // Engine glow
+            ctx.fillStyle = '#1E90FF';
+            ctx.fillRect(p*8, p*19, p*2, p*1);
+            ctx.fillRect(p*14, p*19, p*2, p*1);
+            ctx.fillStyle = '#4169E1';
+            ctx.fillRect(p*10, p*19, p*1, p*1);
+            ctx.fillRect(p*13, p*19, p*1, p*1);
+        }
+
+        // Elite Fighter - Ace Custom
+        function drawShipAceCustom(ctx, w, h) {
+            const p = w / 24;
+
+            // Streamlined nose
+            ctx.fillStyle = '#FFD700';
+            ctx.fillRect(p*11, p*1, p*2, p*1);
+            ctx.fillRect(p*10, p*2, p*4, p*2);
+
+            // Nose highlight
+            ctx.fillStyle = '#FFF68F';
+            ctx.fillRect(p*11, p*2, p*1, p*1);
+
+            // Canopy (advanced)
+            ctx.fillStyle = '#00CED1';
+            ctx.fillRect(p*10, p*4, p*4, p*4);
+
+            // Canopy frame
+            ctx.fillStyle = '#E8E8E8';
+            ctx.fillRect(p*9, p*5, p*1, p*2);
+            ctx.fillRect(p*14, p*5, p*1, p*2);
+            ctx.fillRect(p*10, p*6, p*4, p*1);
+
+            // Canopy reflection
+            ctx.fillStyle = '#E0FFFF';
+            ctx.fillRect(p*11, p*5, p*2, p*1);
+
+            // Main body (sleek)
+            ctx.fillStyle = '#C0C0C0';
+            ctx.fillRect(p*9, p*8, p*6, p*6);
+
+            // Body highlights
+            ctx.fillStyle = '#E8E8E8';
+            ctx.fillRect(p*9, p*9, p*2, p*3);
+
+            // Body shadows
+            ctx.fillStyle = '#A0A0A0';
+            ctx.fillRect(p*13, p*10, p*2, p*3);
+
+            // Racing stripes
+            ctx.fillStyle = '#DC143C';
+            ctx.fillRect(p*10, p*9, p*1, p*5);
+            ctx.fillRect(p*13, p*9, p*1, p*5);
+
+            // Delta wings
+            ctx.fillStyle = '#A0A0A0';
+            ctx.fillRect(p*6, p*10, p*3, p*3);
+            ctx.fillRect(p*15, p*10, p*3, p*3);
+            ctx.fillRect(p*5, p*11, p*2, p*3);
+            ctx.fillRect(p*17, p*11, p*2, p*3);
+
+            // Wing highlights
+            ctx.fillStyle = '#C0C0C0';
+            ctx.fillRect(p*6, p*10, p*1, p*1);
+            ctx.fillRect(p*17, p*10, p*1, p*1);
+
+            // Wing markings
+            ctx.fillStyle = '#FFD700';
+            ctx.fillRect(p*7, p*12, p*1, p*1);
+            ctx.fillRect(p*16, p*12, p*1, p*1);
+
+            // Weapon hardpoints
+            ctx.fillStyle = '#696969';
+            ctx.fillRect(p*6, p*12, p*2, p*1);
+            ctx.fillRect(p*16, p*12, p*2, p*1);
+
+            // Advanced weapons
+            ctx.fillStyle = '#FF6347';
+            ctx.fillRect(p*6, p*11, p*1, p*2);
+            ctx.fillRect(p*17, p*11, p*1, p*2);
+
+            // Tail fins
+            ctx.fillStyle = '#FFD700';
+            ctx.fillRect(p*8, p*14, p*2, p*3);
+            ctx.fillRect(p*14, p*14, p*2, p*3);
+
+            // Fin details
+            ctx.fillStyle = '#DC143C';
+            ctx.fillRect(p*8, p*15, p*2, p*1);
+            ctx.fillRect(p*14, p*15, p*2, p*1);
+
+            // Advanced engines (vectored)
+            ctx.fillStyle = '#2F2F2F';
+            ctx.fillRect(p*9, p*14, p*2, p*3);
+            ctx.fillRect(p*13, p*14, p*2, p*3);
+            ctx.fillRect(p*11, p*15, p*2, p*2);
+
+            // Engine cores
+            ctx.fillStyle = '#4169E1';
+            ctx.fillRect(p*9, p*15, p*2, p*1);
+            ctx.fillRect(p*13, p*15, p*2, p*1);
+
+            // Center engine
+            ctx.fillStyle = '#9370DB';
+            ctx.fillRect(p*11, p*16, p*2, p*1);
+
+            // Plasma exhaust
+            ctx.fillStyle = '#00BFFF';
+            ctx.fillRect(p*9, p*16, p*2, p*1);
+            ctx.fillRect(p*13, p*16, p*2, p*1);
+            ctx.fillStyle = '#DDA0DD';
+            ctx.fillRect(p*11, p*16, p*2, p*1);
+        }
+
+        // Ultimate Fighter - Prototype Starfighter
+        function drawShipPrototype(ctx, w, h) {
+            const p = w / 32;
+
+            // Experimental nose cone
+            ctx.fillStyle = '#00FFFF';
+            ctx.fillRect(p*15, p*2, p*2, p*2);
+
+            // Nose energy field
+            ctx.fillStyle = '#E0FFFF';
+            ctx.fillRect(p*15, p*2, p*1, p*1);
+
+            // Nose armor
+            ctx.fillStyle = '#E8E8E8';
+            ctx.fillRect(p*14, p*4, p*4, p*2);
+            ctx.fillRect(p*13, p*6, p*6, p*2);
+
+            // Advanced cockpit module
+            ctx.fillStyle = '#1E90FF';
+            ctx.fillRect(p*14, p*8, p*4, p*4);
+
+            // Cockpit frame (titanium)
+            ctx.fillStyle = '#F5F5F5';
+            ctx.fillRect(p*13, p*9, p*1, p*2);
+            ctx.fillRect(p*18, p*9, p*1, p*2);
+            ctx.fillRect(p*14, p*8, p*4, p*1);
+            ctx.fillRect(p*14, p*11, p*4, p*1);
+
+            // HUD display
+            ctx.fillStyle = '#00FF00';
+            ctx.fillRect(p*15, p*9, p*2, p*2);
+
+            // Main hull (composite armor)
+            ctx.fillStyle = '#C0C0C0';
+            ctx.fillRect(p*12, p*12, p*8, p*8);
+
+            // Hull energy conduits
+            ctx.fillStyle = '#00CED1';
+            ctx.fillRect(p*14, p*14, p*1, p*4);
+            ctx.fillRect(p*17, p*14, p*1, p*4);
+
+            // Conduit glow
+            ctx.fillStyle = '#AFEEEE';
+            ctx.fillRect(p*14, p*14, p*1, p*1);
+            ctx.fillRect(p*17, p*14, p*1, p*1);
+
+            // Hull panels
+            ctx.fillStyle = '#E8E8E8';
+            ctx.fillRect(p*13, p*13, p*2, p*2);
+            ctx.fillRect(p*17, p*13, p*2, p*2);
+
+            // Variable geometry wings
+            ctx.fillStyle = '#A0A0A0';
+            ctx.fillRect(p*8, p*13, p*4, p*4);
+            ctx.fillRect(p*20, p*13, p*4, p*4);
+            ctx.fillRect(p*6, p*14, p*3, p*5);
+            ctx.fillRect(p*23, p*14, p*3, p*5);
+
+            // Wing highlights
+            ctx.fillStyle = '#D3D3D3';
+            ctx.fillRect(p*8, p*13, p*1, p*2);
+            ctx.fillRect(p*23, p*13, p*1, p*2);
+
+            // Wing energy nodes
+            ctx.fillStyle = '#9370DB';
+            ctx.fillRect(p*9, p*15, p*2, p*2);
+            ctx.fillRect(p*21, p*15, p*2, p*2);
+
+            // Node glow
+            ctx.fillStyle = '#DDA0DD';
+            ctx.fillRect(p*9, p*15, p*1, p*1);
+            ctx.fillRect(p*22, p*15, p*1, p*1);
+
+            // Plasma cannons
+            ctx.fillStyle = '#4A4A4A';
+            ctx.fillRect(p*7, p*15, p*2, p*4);
+            ctx.fillRect(p*23, p*15, p*2, p*4);
+
+            // Cannon energy
+            ctx.fillStyle = '#FF6347';
+            ctx.fillRect(p*7, p*16, p*2, p*1);
+            ctx.fillRect(p*23, p*16, p*2, p*1);
+
+            // Missile arrays
+            ctx.fillStyle = '#696969';
+            ctx.fillRect(p*10, p*16, p*2, p*3);
+            ctx.fillRect(p*20, p*16, p*2, p*3);
+
+            // Micro missiles
+            ctx.fillStyle = '#FFD700';
+            ctx.fillRect(p*10, p*16, p*1, p*1);
+            ctx.fillRect(p*11, p*17, p*1, p*1);
+            ctx.fillRect(p*20, p*16, p*1, p*1);
+            ctx.fillRect(p*21, p*17, p*1, p*1);
+
+            // Tail section (stealth)
+            ctx.fillStyle = '#808080';
+            ctx.fillRect(p*13, p*20, p*6, p*4);
+
+            // Tail fins (active camouflage panels)
+            ctx.fillStyle = '#A0A0A0';
+            ctx.fillRect(p*11, p*21, p*2, p*4);
+            ctx.fillRect(p*19, p*21, p*2, p*4);
+
+            // Fin highlights
+            ctx.fillStyle = '#C0C0C0';
+            ctx.fillRect(p*11, p*21, p*1, p*1);
+            ctx.fillRect(p*20, p*21, p*1, p*1);
+
+            // Experimental engines (quantum drive)
+            ctx.fillStyle = '#2F2F2F';
+            ctx.fillRect(p*12, p*24, p*3, p*4);
+            ctx.fillRect(p*17, p*24, p*3, p*4);
+            ctx.fillRect(p*14, p*25, p*4, p*3);
+
+            // Engine cores (multiple types)
+            ctx.fillStyle = '#4169E1';
+            ctx.fillRect(p*12, p*25, p*3, p*2);
+            ctx.fillRect(p*17, p*25, p*3, p*2);
+
+            // Center core (quantum)
+            ctx.fillStyle = '#9370DB';
+            ctx.fillRect(p*15, p*26, p*2, p*2);
+
+            // Quantum field
+            ctx.fillStyle = '#DDA0DD';
+            ctx.fillRect(p*14, p*26, p*1, p*1);
+            ctx.fillRect(p*17, p*26, p*1, p*1);
+
+            // Plasma exhaust
+            ctx.fillStyle = '#00BFFF';
+            ctx.fillRect(p*12, p*27, p*3, p*1);
+            ctx.fillRect(p*17, p*27, p*3, p*1);
+
+            // Quantum trail
+            ctx.fillStyle = '#E6E6FA';
+            ctx.fillRect(p*15, p*27, p*2, p*1);
+        }
+
+        // Template data with drawing functions
+        const templates = [
+            // 8-bit Warriors
+            { name: 'Knight (8-bit)', width: 16, height: 16, category: '8-bit Warriors', draw: draw8BitWarriorKnight },
+            { name: 'Barbarian (8-bit)', width: 16, height: 16, category: '8-bit Warriors', draw: draw8BitWarriorBarbarian },
+
+            // 8-bit Mages
+            { name: 'Blue Wizard (8-bit)', width: 16, height: 16, category: '8-bit Mages', draw: draw8BitMageBlue },
+            { name: 'Red Mage (8-bit)', width: 16, height: 16, category: '8-bit Mages', draw: draw8BitMageRed },
+
+            // 8-bit Rogues
+            { name: 'Thief (8-bit)', width: 16, height: 16, category: '8-bit Rogues', draw: draw8BitRogueThief },
+            { name: 'Ninja (8-bit)', width: 16, height: 16, category: '8-bit Rogues', draw: draw8BitRogueNinja },
+
+            // 16-bit Warriors
+            { name: 'Paladin (16-bit)', width: 32, height: 32, category: '16-bit Warriors', draw: draw16BitWarriorPaladin },
+            { name: 'Samurai (16-bit)', width: 32, height: 32, category: '16-bit Warriors', draw: draw16BitWarriorSamurai },
+
+            // 16-bit Mages
+            { name: 'Arch Wizard (16-bit)', width: 32, height: 32, category: '16-bit Mages', draw: draw16BitMageArchWizard },
+            { name: 'Elementalist (16-bit)', width: 32, height: 32, category: '16-bit Mages', draw: draw16BitMageElementalist },
+
+            // 16-bit Rogues
+            { name: 'Assassin (16-bit)', width: 32, height: 32, category: '16-bit Rogues', draw: draw16BitRogueAssassin },
+            { name: 'Ranger (16-bit)', width: 32, height: 32, category: '16-bit Rogues', draw: draw16BitRogueRanger },
+
+            // Fighter Ships (Simple to Complex)
+            { name: 'Basic Fighter', width: 16, height: 16, category: 'Fighter Ships', draw: drawShipBasic },
+            { name: 'Scout Ship', width: 16, height: 16, category: 'Fighter Ships', draw: drawShipScout },
+            { name: 'Interceptor', width: 16, height: 16, category: 'Fighter Ships', draw: drawShipInterceptor },
+            { name: 'Heavy Gunship', width: 24, height: 24, category: 'Fighter Ships', draw: drawShipGunship },
+            { name: 'Ace Custom', width: 24, height: 24, category: 'Fighter Ships', draw: drawShipAceCustom },
+            { name: 'Prototype Starfighter', width: 32, height: 32, category: 'Fighter Ships', draw: drawShipPrototype }
+        ];
+
+        // Initialize templates
+        function initTemplates() {
+            const grid = document.getElementById('templateGrid');
+
+            // Group templates by category
+            const categories = {};
+            templates.forEach(template => {
+                if (!categories[template.category]) {
+                    categories[template.category] = [];
+                }
+                categories[template.category].push(template);
+            });
+
+            // Add "Download All Templates" button at the top
+            const downloadAllContainer = document.createElement('div');
+            downloadAllContainer.style.gridColumn = '1 / -1';
+            downloadAllContainer.style.marginBottom = '20px';
+            downloadAllContainer.style.textAlign = 'center';
+
+            const downloadAllBtn = document.createElement('button');
+            downloadAllBtn.className = 'btn btn-success';
+            downloadAllBtn.textContent = '📦 Download All Templates';
+            downloadAllBtn.style.fontSize = '1.1em';
+            downloadAllBtn.style.padding = '15px 30px';
+            downloadAllBtn.onclick = () => downloadAllTemplates();
+            downloadAllContainer.appendChild(downloadAllBtn);
+            grid.appendChild(downloadAllContainer);
+
+            // Add category headers and templates
+            Object.keys(categories).forEach(category => {
+                const categoryHeader = document.createElement('div');
+                categoryHeader.style.gridColumn = '1 / -1';
+                categoryHeader.style.marginTop = '20px';
+                categoryHeader.style.display = 'flex';
+                categoryHeader.style.justifyContent = 'space-between';
+                categoryHeader.style.alignItems = 'center';
+                categoryHeader.style.flexWrap = 'wrap';
+                categoryHeader.style.gap = '10px';
+
+                const categoryTitle = document.createElement('h3');
+                categoryTitle.style.color = '#39FF14';
+                categoryTitle.style.fontSize = '1.2em';
+                categoryTitle.style.margin = '0';
+                categoryTitle.textContent = category;
+
+                const downloadCategoryBtn = document.createElement('button');
+                downloadCategoryBtn.className = 'btn btn-secondary';
+                downloadCategoryBtn.textContent = `📥 Download ${category}`;
+                downloadCategoryBtn.onclick = () => downloadCategoryTemplates(category, categories[category]);
+
+                categoryHeader.appendChild(categoryTitle);
+                categoryHeader.appendChild(downloadCategoryBtn);
+                grid.appendChild(categoryHeader);
+
+                categories[category].forEach(template => {
+                    const item = document.createElement('div');
+                    item.className = 'template-item';
+
+                    const previewDiv = document.createElement('div');
+                    previewDiv.className = 'template-preview';
+
+                    const canvas = document.createElement('canvas');
+                    canvas.width = template.width;
+                    canvas.height = template.height;
+                    const ctx = canvas.getContext('2d');
+
+                    // Clear background
+                    ctx.fillStyle = '#1a1a1a';
+                    ctx.fillRect(0, 0, template.width, template.height);
+
+                    // Draw the actual template artwork
+                    template.draw(ctx, template.width, template.height);
+
+                    previewDiv.appendChild(canvas);
+
+                    const title = document.createElement('h3');
+                    title.textContent = template.name;
+
+                    const desc = document.createElement('p');
+                    desc.textContent = `${template.width}×${template.height} px`;
+
+                    const downloadBtn = document.createElement('button');
+                    downloadBtn.className = 'btn btn-primary';
+                    downloadBtn.textContent = 'Download';
+                    downloadBtn.style.width = '100%';
+                    downloadBtn.onclick = () => downloadTemplate(canvas, template.name);
+
+                    item.appendChild(previewDiv);
+                    item.appendChild(title);
+                    item.appendChild(desc);
+                    item.appendChild(downloadBtn);
+                    grid.appendChild(item);
+                });
+            });
+        }
+
+        function downloadTemplate(canvas, name) {
+            const link = document.createElement('a');
+            link.download = `${name.replace(/\s+/g, '_')}_template.png`;
+            link.href = canvas.toDataURL();
+            link.click();
+        }
+
+        // Download all templates from a specific category
+        function downloadCategoryTemplates(categoryName, categoryTemplates) {
+            if (!categoryTemplates || categoryTemplates.length === 0) {
+                alert('No templates in this category!');
+                return;
+            }
+
+            const confirmed = confirm(`Download ${categoryTemplates.length} templates from "${categoryName}"?\n\nTemplates will download one by one.`);
+            if (!confirmed) return;
+
+            // Download templates with delay to avoid browser blocking
+            categoryTemplates.forEach((template, index) => {
+                setTimeout(() => {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = template.width;
+                    canvas.height = template.height;
+                    const ctx = canvas.getContext('2d');
+
+                    // Clear background
+                    ctx.fillStyle = '#1a1a1a';
+                    ctx.fillRect(0, 0, template.width, template.height);
+
+                    // Draw template
+                    template.draw(ctx, template.width, template.height);
+
+                    // Download
+                    const sanitizedCategory = categoryName.replace(/\s+/g, '_');
+                    downloadTemplate(canvas, `${sanitizedCategory}_${template.name}`);
+                }, index * 300); // 300ms delay between downloads
+            });
+        }
+
+        // Download all templates
+        function downloadAllTemplates() {
+            const confirmed = confirm(`Download all ${templates.length} templates?\n\nTemplates will download one by one. This may take a minute.`);
+            if (!confirmed) return;
+
+            // Download all templates with delay
+            templates.forEach((template, index) => {
+                setTimeout(() => {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = template.width;
+                    canvas.height = template.height;
+                    const ctx = canvas.getContext('2d');
+
+                    // Clear background
+                    ctx.fillStyle = '#1a1a1a';
+                    ctx.fillRect(0, 0, template.width, template.height);
+
+                    // Draw template
+                    template.draw(ctx, template.width, template.height);
+
+                    // Download with category prefix
+                    const sanitizedCategory = template.category.replace(/\s+/g, '_');
+                    downloadTemplate(canvas, `${sanitizedCategory}_${template.name}`);
+                }, index * 300); // 300ms delay between downloads
+            });
+        }
+
+        // File upload handling
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+
+        uploadArea.addEventListener('click', () => fileInput.click());
+
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const file = e.dataTransfer.files[0];
+            if (file && file.type.startsWith('image/')) {
+                processImage(file);
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files[0]) {
+                processImage(e.target.files[0]);
+            }
+        });
+
+        function processImage(file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => {
+                    if (img.width > 480 || img.height > 320) {
+                        alert('Warning: Image exceeds display size (480x320). Consider resizing for optimal performance.');
+                    }
+
+                    displayImage(img);
+                    convertToRGB565(img);
+
+                    document.getElementById('previewSection').style.display = 'block';
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function displayImage(img) {
+            const canvas = document.getElementById('originalCanvas');
+            canvas.width = img.width;
+            canvas.height = img.height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0);
+
+            currentImageData = ctx.getImageData(0, 0, img.width, img.height);
+
+            // Display image info
+            const infoBox = document.getElementById('imageInfo');
+            const colorCount = getUniqueColorCount(currentImageData);
+            infoBox.innerHTML = `
+                <p><strong>Dimensions:</strong> ${img.width} × ${img.height} pixels</p>
+                <p><strong>Total Pixels:</strong> ${img.width * img.height}</p>
+                <p><strong>Unique Colors:</strong> ${colorCount}</p>
+                <p><strong>Memory Size:</strong> ${(img.width * img.height * 2)} bytes (${((img.width * img.height * 2) / 1024).toFixed(2)} KB)</p>
+            `;
+        }
+
+        function getUniqueColorCount(imageData) {
+            const colors = new Set();
+            for (let i = 0; i < imageData.data.length; i += 4) {
+                const r = imageData.data[i];
+                const g = imageData.data[i + 1];
+                const b = imageData.data[i + 2];
+                colors.add(`${r},${g},${b}`);
+            }
+            return colors.size;
+        }
+
+        function convertToRGB565(img) {
+            const canvas = document.getElementById('rgb565Canvas');
+            canvas.width = img.width;
+            canvas.height = img.height;
+            const ctx = canvas.getContext('2d');
+
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = img.width;
+            tempCanvas.height = img.height;
+            const tempCtx = tempCanvas.getContext('2d');
+            tempCtx.drawImage(img, 0, 0);
+
+            const imageData = tempCtx.getImageData(0, 0, img.width, img.height);
+            const rgb565Array = [];
+
+            for (let i = 0; i < imageData.data.length; i += 4) {
+                let r = imageData.data[i];
+                let g = imageData.data[i + 1];
+                let b = imageData.data[i + 2];
+                const a = imageData.data[i + 3];
+
+                // Handle transparency - convert to white
+                if (a < 128) {
+                    r = 255;
+                    g = 255;
+                    b = 255;
+                }
+
+                // Convert to RGB565
+                const r5 = (r >> 3) & 0x1F;
+                const g6 = (g >> 2) & 0x3F;
+                const b5 = (b >> 3) & 0x1F;
+                const rgb565 = (r5 << 11) | (g6 << 5) | b5;
+
+                rgb565Array.push(rgb565);
+
+                // Convert back to RGB888 for preview
+                imageData.data[i] = (r5 << 3) | (r5 >> 2);
+                imageData.data[i + 1] = (g6 << 2) | (g6 >> 4);
+                imageData.data[i + 2] = (b5 << 3) | (b5 >> 2);
+                imageData.data[i + 3] = 255;
+            }
+
+            ctx.putImageData(imageData, 0, 0);
+            currentRGB565Data = {
+                width: img.width,
+                height: img.height,
+                data: rgb565Array,
+                imageData: imageData
+            };
+        }
+
+        document.getElementById('generateBtn').addEventListener('click', () => {
+            if (!currentRGB565Data) return;
+
+            const spriteName = document.getElementById('spriteName').value || 'sprite';
+            const code = generateCCode(spriteName, currentRGB565Data);
+
+            document.getElementById('codeText').textContent = code;
+            document.getElementById('codeOutput').style.display = 'block';
+        });
+
+        function generateCCode(name, rgb565Data) {
+            const sanitizedName = name.replace(/[^a-zA-Z0-9_]/g, '_');
+            let code = `// ${sanitizedName} - ${rgb565Data.width}x${rgb565Data.height} pixels\n`;
+            code += `// Generated by ESP32 Sprite Converter\n\n`;
+            code += `const uint16_t ${sanitizedName}[] PROGMEM = {\n`;
+
+            const perLine = 12;
+            for (let i = 0; i < rgb565Data.data.length; i++) {
+                if (i % perLine === 0) code += '  ';
+                code += `0x${rgb565Data.data[i].toString(16).toUpperCase().padStart(4, '0')}`;
+                if (i < rgb565Data.data.length - 1) code += ',';
+                if ((i + 1) % perLine === 0 && i < rgb565Data.data.length - 1) {
+                    code += '\n';
+                } else if (i < rgb565Data.data.length - 1) {
+                    code += ' ';
+                }
+            }
+
+            code += `\n};\n\n`;
+            code += `const int ${sanitizedName}_width = ${rgb565Data.width};\n`;
+            code += `const int ${sanitizedName}_height = ${rgb565Data.height};\n\n`;
+            code += `// Usage example:\n`;
+            code += `// sprite.pushImage(x, y, ${sanitizedName}_width, ${sanitizedName}_height, ${sanitizedName});`;
+
+            return code;
+        }
+
+        document.getElementById('copyCodeBtn').addEventListener('click', () => {
+            const code = document.getElementById('codeText').textContent;
+            navigator.clipboard.writeText(code).then(() => {
+                const btn = document.getElementById('copyCodeBtn');
+                const originalText = btn.textContent;
+                btn.textContent = '✓ Copied!';
+                setTimeout(() => btn.textContent = originalText, 2000);
+            });
+        });
+
+        document.getElementById('saveToGalleryBtn').addEventListener('click', () => {
+            if (!currentRGB565Data) return;
+
+            const spriteName = document.getElementById('spriteName').value || `sprite_${Date.now()}`;
+
+            const gallery = JSON.parse(localStorage.getItem('spriteGallery') || '[]');
+
+            gallery.push({
+                name: spriteName,
+                width: currentRGB565Data.width,
+                height: currentRGB565Data.height,
+                data: currentRGB565Data.data,
+                imageDataURL: document.getElementById('rgb565Canvas').toDataURL(),
+                timestamp: Date.now()
+            });
+
+            localStorage.setItem('spriteGallery', JSON.stringify(gallery));
+
+            alert('Sprite saved to gallery!');
+
+            // Switch to gallery tab
+            document.querySelector('[data-tab="gallery"]').click();
+        });
+
+        function loadGallery() {
+            const gallery = JSON.parse(localStorage.getItem('spriteGallery') || '[]');
+            const container = document.getElementById('galleryContent');
+
+            if (gallery.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📦</div>
+                        <h3>No sprites yet</h3>
+                        <p>Convert and save your first sprite to see it here!</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = '<div class="gallery-grid"></div>';
+            const grid = container.querySelector('.gallery-grid');
+
+            gallery.forEach((sprite, index) => {
+                const item = document.createElement('div');
+                item.className = 'gallery-item';
+
+                const img = document.createElement('img');
+                img.src = sprite.imageDataURL;
+
+                const info = document.createElement('div');
+                info.className = 'gallery-item-info';
+                info.innerHTML = `
+                    <strong>${sprite.name}</strong><br>
+                    ${sprite.width}×${sprite.height} px<br>
+                    ${new Date(sprite.timestamp).toLocaleDateString()}
+                `;
+
+                const actions = document.createElement('div');
+                actions.className = 'gallery-actions';
+
+                const viewCodeBtn = document.createElement('button');
+                viewCodeBtn.className = 'btn btn-primary';
+                viewCodeBtn.textContent = 'View Code';
+                viewCodeBtn.onclick = () => viewSpriteCode(sprite);
+
+                const downloadBtn = document.createElement('button');
+                downloadBtn.className = 'btn btn-secondary';
+                downloadBtn.textContent = 'Download';
+                downloadBtn.onclick = () => downloadSprite(sprite);
+
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'btn btn-danger';
+                deleteBtn.textContent = 'Delete';
+                deleteBtn.onclick = () => deleteSprite(index);
+
+                actions.appendChild(viewCodeBtn);
+                actions.appendChild(downloadBtn);
+                actions.appendChild(deleteBtn);
+
+                item.appendChild(img);
+                item.appendChild(info);
+                item.appendChild(actions);
+                grid.appendChild(item);
+            });
+        }
+
+        function viewSpriteCode(sprite) {
+            const code = generateCCode(sprite.name, sprite);
+
+            const modal = document.createElement('div');
+            modal.className = 'modal';
+
+            const content = document.createElement('div');
+            content.className = 'modal-content';
+
+            content.innerHTML = `
+                <div class="modal-header">
+                    <h2>${sprite.name}</h2>
+                    <button class="btn btn-secondary" onclick="this.closest('.modal').remove()">Close</button>
+                </div>
+                <button class="btn btn-primary" style="margin-bottom: 15px;" onclick="navigator.clipboard.writeText(this.nextElementSibling.textContent).then(() => { this.textContent = '✓ Copied!'; setTimeout(() => this.textContent = 'Copy Code', 2000); })">Copy Code</button>
+                <div class="code-output">${code}</div>
+            `;
+
+            modal.appendChild(content);
+            document.body.appendChild(modal);
+
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) modal.remove();
+            });
+        }
+
+        function downloadSprite(sprite) {
+            const link = document.createElement('a');
+            link.download = `${sprite.name}.png`;
+            link.href = sprite.imageDataURL;
+            link.click();
+        }
+
+        function deleteSprite(index) {
+            if (confirm('Are you sure you want to delete this sprite?')) {
+                const gallery = JSON.parse(localStorage.getItem('spriteGallery') || '[]');
+                gallery.splice(index, 1);
+                localStorage.setItem('spriteGallery', JSON.stringify(gallery));
+                loadGallery();
+            }
+        }
+
+        // Initialize on load
+        initTemplates();
+    </script>
+</body>
+</html>
